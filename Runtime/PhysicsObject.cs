@@ -35,7 +35,7 @@ namespace VED.Physics
         protected List<PhysicsObject> _nearby = new List<PhysicsObject>();
 
         // the margin of error allowed in collision detection
-        protected const float COLLISION_ERROR_MARGIN = 0.035f;
+        protected const float COLLISION_ERROR_MARGIN = 0.0035f;
         protected const float NEARBY_DISTANCE = 2f;
 
         protected double _xRemainder = 0; // remaining fraction of rounded x movement

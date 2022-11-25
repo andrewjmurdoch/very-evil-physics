@@ -170,5 +170,10 @@ namespace VED.Physics
 
             return count;
         }
+
+        public PhysicsEdge Inverse()
+        {
+            return new PhysicsEdge(OB, OA);
+        }
     }
 }

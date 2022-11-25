@@ -14,34 +14,42 @@ namespace VED
         protected class SlideActorSettings
         {
             #region Up
-            [SerializeField] public bool  CanSlideUpMovingLeft    = true;
-            [SerializeField] public bool  CanSlideUpMovingRight   = true;
-            [SerializeField] public float MaxSlideUpDist          = 0.7f;
+            [SerializeField] public bool CanSlideUpMovingLeft            = true; // whether actor can slide up, when moving left
+            [SerializeField] public bool CanSlideUpMovingRight           = true; // whether actor can slide up, when moving right
+            [SerializeField] public float MaxSlideUpDist                 = 0.2f;
+            [SerializeField] public Vector2 GradientSlideUpMovingLeft    = new Vector2(-2.00f, 0.00f);
+            [SerializeField] public Vector2 GradientSlideUpMovingRight   = new Vector2( 0.00f, 2.00f);
             #endregion
 
             #region Down
-            [SerializeField] public bool  CanSlideDownMovingLeft  = true;
-            [SerializeField] public bool  CanSlideDownMovingRight = true;
-            [SerializeField] public float MaxSlideDownDist        = 0.7f;
+            [SerializeField] public bool CanSlideDownMovingLeft          = true; // whether actor can slide down, when moving left
+            [SerializeField] public bool CanSlideDownMovingRight         = true; // whether actor can slide down, when moving right
+            [SerializeField] public float MaxSlideDownDist               = 0.2f;
+            [SerializeField] public Vector2 GradientSlideDownMovingLeft  = new Vector2( 0.00f, 2.00f);
+            [SerializeField] public Vector2 GradientSlideDownMovingRight = new Vector2(-2.00f, 0.00f);
             #endregion
 
             #region Left
-            [SerializeField] public bool  CanSlideLeftMovingUp    = true; // whether actor can slide horizontally, when moving up
-            [SerializeField] public bool  CanSlideLeftMovingDown  = true; // whether actor can slide horizontally, when moving down, useful for actors with gravity
-            [SerializeField] public float MaxSlideLeftDist        = 0.7f;
+            [SerializeField] public bool CanSlideLeftMovingUp            = true; // whether actor can slide left, when moving up
+            [SerializeField] public bool CanSlideLeftMovingDown          = true; // whether actor can slide left, when moving down, useful for actors with gravity
+            [SerializeField] public float MaxSlideLeftDist               = 0.2f;
+            [SerializeField] public Vector2 GradientSlideLeftMovingUp    = new Vector2(-2.00f, -0.50f);
+            [SerializeField] public Vector2 GradientSlideLeftMovingDown  = new Vector2( 1.50f,  float.MaxValue);
             #endregion
 
             #region Right
-            [SerializeField] public bool  CanSlideRightMovingUp   = true; // whether actor can slide horizontally, when moving up
-            [SerializeField] public bool  CanSlideRightMovingDown = true; // whether actor can slide horizontally, when moving down, useful for actors with gravity
-            [SerializeField] public float MaxSlideRightDist       = 0.7f;
+            [SerializeField] public bool CanSlideRightMovingUp           = true; // whether actor can slide right, when moving up
+            [SerializeField] public bool CanSlideRightMovingDown         = true; // whether actor can slide right, when moving down, useful for actors with gravity
+            [SerializeField] public float MaxSlideRightDist              = 0.2f;
+            [SerializeField] public Vector2 GradientSlideRightMovingUp   = new Vector2( 0.50f,  2.00f);
+            [SerializeField] public Vector2 GradientSlideRightMovingDown = new Vector2(float.MinValue, -1.50f);
             #endregion
-
-            [SerializeField] public Optional<float> GradientTriangle = new Optional<float>(1.7319f, false);
-            [SerializeField] public Optional<float> GradientCircle   = new Optional<float>(5.6f   , false);
         }
 
         [SerializeField] protected SlideActorSettings _slideSettings = new SlideActorSettings();
+
+        public float MAX_CONVERSION_THRESHOLD = 6.0f; // the max value to consider when converting momentum between directions
+        public float MIN_CONVERSION_VALUE     = 0.5f; // the min conversion rate between directions during a slide
 
         public bool SlidingUp => _slidingUp;
         protected bool _slidingUp = false;
@@ -58,11 +66,12 @@ namespace VED
         public bool SlidingHorizontally => _slidingLeft || _slidingRight;
 
         #region Up
-        protected bool CanSlideUp(float sign, PhysicsContact collision)
+        protected bool CanSlideUp(float sign, PhysicsContact collision, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideUpMovingLeft  && (sign < 0))  return false;
             if (!_slideSettings.CanSlideUpMovingRight && (sign > 0))  return false;
-            if (SlidingHorizontally || !MoveableVertically[1]) return false;
+            if (!MoveableVertically[1]) return false;
 
             // try to slide up on other collider
             float slide;
@@ -81,10 +90,28 @@ namespace VED
                     slide = position.y - edge.A.y;
                 }
 
-                if (slide >= 0 && (!_slideSettings.GradientTriangle.Enabled || ((edge.B.x - edge.A.x) != 0 && Mathf.Abs(edge.Gradient) < _slideSettings.GradientTriangle.Value)))
+                float gradient = edge.Inverse().Gradient;
+                bool gradientMovingLeft  = sign < 0 && gradient > _slideSettings.GradientSlideUpMovingLeft.x  && gradient < _slideSettings.GradientSlideUpMovingLeft.y;
+                bool gradientMovingRight = sign > 0 && gradient > _slideSettings.GradientSlideUpMovingRight.x && gradient < _slideSettings.GradientSlideUpMovingRight.y;
+
+                if (slide >= 0 && (gradientMovingLeft || gradientMovingRight))
                 {
+                    if (sign < 0)
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideUpMovingLeft.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideUpMovingLeft.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
+                    }
+                    else
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideUpMovingRight.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideUpMovingRight.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
+                    }
                     return true;
                 }
+
+                return false;
             }
 
             // special case for sliding up on circle collider
@@ -101,14 +128,10 @@ namespace VED
 
                 slide = position.y - circle.Position.y;
 
-                Vector2 line = Vector2.Perpendicular(position - collision.RemoteCollider.Position);
-                float gradient = Mathf.Abs(line.y / line.x);
-
-                if (slide >= 0 && (!_slideSettings.GradientCircle.Enabled || gradient == Mathf.Infinity || gradient < _slideSettings.GradientCircle.Value))
+                if (slide >= 0)
                 {
                     return true;
                 }
-                Debug.Log(gradient);
             }
 
             // typical case for sliding up on square collider
@@ -121,22 +144,25 @@ namespace VED
             return false;
         }
 
-        protected bool CanSlideUp(float sign, List<PhysicsContact> collisions)
+        protected bool CanSlideUp(float sign, List<PhysicsContact> collisions, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideUpMovingLeft  && (_velocity.x < 0))  return false;
             if (!_slideSettings.CanSlideUpMovingRight && (_velocity.x > 0))  return false;
-            if (SlidingHorizontally || !MoveableVertically[1]) return false;
+            if (!MoveableVertically[1]) return false;
 
-            bool canStep = true;
+            bool canSlide = true;
+
             foreach (PhysicsContact collision in collisions)
             {
-                canStep &= CanSlideUp(sign, collision);
+                canSlide &= CanSlideUp(sign, collision, out float newAmount);
+                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
             }
 
-            return canStep;
+            return canSlide;
         }
 
-        protected void PerformSlideUp()
+        protected void PerformSlideUp(float amount = 1)
         {
             // perform slide up
             _slidingUp = true;
@@ -147,16 +173,17 @@ namespace VED
             _velocity = new Vector2(_velocity.x, Math.Max(_velocity.y, 0f));
 
             // convert this horizontal movement into vertical movement
-            _yRounded++;
+            _yRemainder += amount;
         }
         #endregion
 
         #region Down
-        protected bool CanSlideDown(float sign, PhysicsContact collision)
+        protected bool CanSlideDown(float sign, PhysicsContact collision, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideDownMovingLeft  && (sign < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (sign > 0)) return false;
-            if (SlidingHorizontally || !MoveableVertically[-1]) return false;
+            if (!MoveableVertically[-1]) return false;
 
             // try to slide underneath other collider
             float slide;
@@ -175,10 +202,28 @@ namespace VED
                     slide = edge.A.y - position.y;
                 }
 
-                if (slide >= 0 && (!_slideSettings.GradientTriangle.Enabled || ((edge.B.x - edge.A.x) != 0 && Mathf.Abs(edge.Gradient) < _slideSettings.GradientTriangle.Value)))
+                float gradient = edge.Inverse().Gradient; 
+                bool gradientMovingLeft  = sign < 0 && gradient > _slideSettings.GradientSlideDownMovingLeft.x  && gradient < _slideSettings.GradientSlideDownMovingLeft.y;
+                bool gradientMovingRight = sign > 0 && gradient > _slideSettings.GradientSlideDownMovingRight.x && gradient < _slideSettings.GradientSlideDownMovingRight.y;
+
+                if (slide >= 0 && (gradientMovingLeft || gradientMovingRight))
                 {
+                    if (sign < 0)
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideDownMovingLeft.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideDownMovingLeft.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
+                    }
+                    else
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideDownMovingRight.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideDownMovingRight.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
+                    }
                     return true;
                 }
+
+                return false;
             }
 
             // special case for sliding under circle collider
@@ -195,14 +240,10 @@ namespace VED
 
                 slide = circle.Position.y - position.y;
 
-                Vector2 line = Vector2.Perpendicular(position - collision.RemoteCollider.Position);
-                float gradient = Mathf.Abs(line.y / line.x);
-
-                if (slide >= 0 && (!_slideSettings.GradientCircle.Enabled || gradient == Mathf.Infinity || gradient < _slideSettings.GradientCircle.Value))
+                if (slide >= 0)
                 {
                     return true;
                 }
-                Debug.Log(gradient);
             }
 
             // typical case for sliding up on square collider
@@ -215,22 +256,24 @@ namespace VED
             return false;
         }
 
-        protected bool CanSlideDown(float sign, List<PhysicsContact> collisions)
+        protected bool CanSlideDown(float sign, List<PhysicsContact> collisions, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideDownMovingLeft  && (_velocity.x < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (_velocity.x > 0)) return false;
-            if (SlidingHorizontally || !MoveableVertically[-1]) return false;
+            if (!MoveableVertically[-1]) return false;
 
-            bool canDuck = true;
+            bool canSlide = true;
             foreach (PhysicsContact collision in collisions)
             {
-                canDuck &= CanSlideDown(sign, collision);
+                canSlide &= CanSlideDown(sign, collision, out float newAmount);
+                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
             }
 
-            return canDuck;
+            return canSlide;
         }
 
-        protected void PerformSlideDown()
+        protected void PerformSlideDown(float amount = 1)
         {
             // perform slide down
             _slidingDown = true;
@@ -241,16 +284,17 @@ namespace VED
             _velocity = new Vector2(_velocity.x, Math.Min(_velocity.y, 0f));
 
             // convert this horizontal movement into vertical movement
-            _yRounded--;
+            _yRemainder -= amount;
         }
         #endregion
 
         #region Left
-        protected bool CanSlideLeft(float sign, PhysicsContact collision)
+        protected bool CanSlideLeft(float sign, PhysicsContact collision, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideLeftMovingUp   && (sign > 0))   return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (sign < 0))   return false;
-            if (SlidingVertically || !MoveableHorizontally[-1]) return false;
+            if (!MoveableHorizontally[-1]) return false;
 
             // try to slide to the left of other collider
             float slide;
@@ -269,10 +313,28 @@ namespace VED
                     slide = edge.B.x - position.x;
                 }
 
-                if (slide >= 0 && (!_slideSettings.GradientTriangle.Enabled || ((edge.B.x - edge.A.x) != 0 && Mathf.Abs(edge.Gradient) < _slideSettings.GradientTriangle.Value)))
+                float gradient = edge.Gradient;
+                bool gradientMovingUp    = sign > 0 && gradient > _slideSettings.GradientSlideLeftMovingUp.x   && gradient < _slideSettings.GradientSlideLeftMovingUp.y;
+                bool gradientMovingDown  = sign < 0 && gradient > _slideSettings.GradientSlideLeftMovingDown.x && gradient < _slideSettings.GradientSlideLeftMovingDown.y;
+
+                if (slide >= 0 && (gradientMovingUp || gradientMovingDown))
                 {
+                    if (sign > 0)
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideLeftMovingUp.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideLeftMovingUp.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
+                    }
+                    else
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideLeftMovingDown.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideLeftMovingDown.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
+                    }
                     return true;
                 }
+
+                return false;
             }
 
             // special case for sliding on circle collider
@@ -289,14 +351,10 @@ namespace VED
 
                 slide = circle.Position.x - position.x;
 
-                Vector2 line = Vector2.Perpendicular(position - collision.RemoteCollider.Position);
-                float gradient = Mathf.Abs(line.y / line.x);
-
-                if (slide >= 0 && (!_slideSettings.GradientCircle.Enabled || gradient == Mathf.Infinity || gradient < _slideSettings.GradientCircle.Value))
+                if (slide >= 0)
                 {
                     return true;
                 }
-                Debug.Log(gradient);
             }
 
             // typical case for sliding left on square collider
@@ -309,22 +367,24 @@ namespace VED
             return false;
         }
 
-        protected bool CanSlideLeft(float sign, List<PhysicsContact> collisions)
+        protected bool CanSlideLeft(float sign, List<PhysicsContact> collisions, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideLeftMovingUp   && (_velocity.y > 0))   return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (_velocity.y < 0))   return false;
-            if (SlidingVertically || !MoveableHorizontally[-1]) return false;
+            if (!MoveableHorizontally[-1]) return false;
 
             bool canSlide = true;
             foreach (PhysicsContact collision in collisions)
             {
-                canSlide &= CanSlideLeft(sign, collision);
+                canSlide &= CanSlideLeft(sign, collision, out float newAmount);
+                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
             }
 
             return canSlide;
         }
 
-        protected void PerformSlideLeft()
+        protected void PerformSlideLeft(float amount = 1)
         {
             // perform slide left
             _slidingLeft = true;
@@ -335,19 +395,20 @@ namespace VED
             _velocity = new Vector2(Math.Min(_velocity.x, 0f), _velocity.y);
 
             // convert this vertical movement into horizontal movement
-            _xRounded--;
+            _xRemainder -= amount;
         }
         #endregion
 
         #region Right
-        protected bool CanSlideRight(float sign, PhysicsContact collision)
+        protected bool CanSlideRight(float sign, PhysicsContact collision, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideRightMovingUp   && (sign > 0))  return false;
             if (!_slideSettings.CanSlideRightMovingDown && (sign < 0))  return false;
-            if (SlidingVertically || !MoveableHorizontally[1]) return false;
+            if (!MoveableHorizontally[1]) return false;
 
             // try to slide to the right of other collider
-            float slide = collision.RemoteCollider.Right - collision.LocalCollider.Left;
+            float slide;
 
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle triangle)
@@ -363,10 +424,28 @@ namespace VED
                     slide = position.x - edge.B.x;
                 }
 
-                if (slide >= 0 && (!_slideSettings.GradientTriangle.Enabled || ((edge.B.x - edge.A.x) != 0 && Mathf.Abs(edge.Gradient) < _slideSettings.GradientTriangle.Value)))
+                float gradient = edge.Gradient;
+                bool gradientMovingUp   = sign > 0 && gradient > _slideSettings.GradientSlideRightMovingUp.x   && gradient < _slideSettings.GradientSlideRightMovingUp.y;
+                bool gradientMovingDown = sign < 0 && gradient > _slideSettings.GradientSlideRightMovingDown.x && gradient < _slideSettings.GradientSlideRightMovingDown.y;
+
+                if (slide >= 0 && (gradientMovingUp || gradientMovingDown))
                 {
+                    if (sign > 0)
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideRightMovingUp.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideRightMovingUp.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
+                    }
+                    else
+                    {
+                        float min = Mathf.Min(_slideSettings.GradientSlideRightMovingDown.x, -MAX_CONVERSION_THRESHOLD);
+                        float max = Mathf.Max(_slideSettings.GradientSlideRightMovingDown.y,  MAX_CONVERSION_THRESHOLD);
+                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
+                    }
                     return true;
                 }
+
+                return false;
             }
 
             // special case for sliding on circle collider
@@ -383,14 +462,10 @@ namespace VED
 
                 slide = position.x - circle.Position.x;
 
-                Vector2 line = Vector2.Perpendicular(position - collision.RemoteCollider.Position);
-                float gradient = Mathf.Abs(line.y / line.x);
-
-                if (slide >= 0 && (!_slideSettings.GradientCircle.Enabled || gradient == Mathf.Infinity || gradient < _slideSettings.GradientCircle.Value))
+                if (slide >= 0)
                 {
                     return true;
                 }
-                Debug.Log(gradient);
             }
 
             // typical case for sliding right on square collider
@@ -403,22 +478,24 @@ namespace VED
             return false;
         }
 
-        protected bool CanSlideRight(float sign, List<PhysicsContact> collisions)
+        protected bool CanSlideRight(float sign, List<PhysicsContact> collisions, out float amount)
         {
+            amount = 1;
             if (!_slideSettings.CanSlideRightMovingUp   && (_velocity.y > 0))  return false;
             if (!_slideSettings.CanSlideRightMovingDown && (_velocity.y < 0))  return false;
-            if (SlidingVertically || !MoveableHorizontally[1]) return false;
+            if (!MoveableHorizontally[1]) return false;
 
             bool canSlide = true;
             foreach (PhysicsContact collision in collisions)
             {
-                canSlide &= CanSlideRight(sign, collision);
+                canSlide &= CanSlideRight(sign, collision, out float newAmount);
+                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
             }
 
             return canSlide;
         }
 
-        protected void PerformSlideRight()
+        protected void PerformSlideRight(float amount = 1)
         {
             // perform slide right
             _slidingRight = true;
@@ -429,7 +506,7 @@ namespace VED
             _velocity = new Vector2(Math.Max(_velocity.x, 0f), _velocity.y);
 
             // convert this vertical movement into horizontal movement
-            _xRounded++;
+            _xRemainder += amount;
         }
         #endregion
 
@@ -439,11 +516,13 @@ namespace VED
             // physics actors are non-moveable when they are attempting to move in any direction in which they collide with a solid, immoveable object, or currently non-moveable object
             // gravity actors are non-moveable when they are colliding with an object they cannot step upon or duck underneath
 
+            float amount = 1;
+
             List<PhysicsContact> solids = CollidingHorizontally(sign, _nearbySolids);
             foreach (PhysicsContact contact in solids)
             {
-                if (CanSlideUp  (sign, contact)) continue;
-                if (CanSlideDown(sign, contact)) continue;
+                if (CanSlideUp  (sign, contact, out amount)) continue;
+                if (CanSlideDown(sign, contact, out amount)) continue;
                 return false;
             }
 
@@ -453,8 +532,8 @@ namespace VED
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
                 if (actor.Immoveable || !actor.MoveableHorizontally[sign])
                 {
-                    if (CanSlideUp  (sign, contact)) continue;
-                    if (CanSlideDown(sign, contact)) continue;
+                    if (CanSlideUp  (sign, contact, out amount)) continue;
+                    if (CanSlideDown(sign, contact, out amount)) continue;
                     return false;
                 }
             }
@@ -468,11 +547,13 @@ namespace VED
             // physics actors are non-moveable when they are attempting to move in any direction in which they collide with a solid, immoveable object, or currently non-moveable object
             // gravity actors are non-moveable when they are colliding with an object they cannot slide against
 
+            float amount = 1;
+
             List<PhysicsContact> solids = CollidingVertically(sign, _nearbySolids);
             foreach (PhysicsContact contact in solids)
             {
-                if (CanSlideLeft (sign, contact)) continue;
-                if (CanSlideRight(sign, contact)) continue;
+                if (CanSlideLeft (sign, contact, out amount)) continue;
+                if (CanSlideRight(sign, contact, out amount)) continue;
                 return false;
             }
 
@@ -482,8 +563,8 @@ namespace VED
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
                 if (actor.Immoveable || !actor.MoveableVertically[sign])
                 {
-                    if (CanSlideLeft (sign, contact)) continue;
-                    if (CanSlideRight(sign, contact)) continue;
+                    if (CanSlideLeft (sign, contact, out amount)) continue;
+                    if (CanSlideRight(sign, contact, out amount)) continue;
                     return false;
                 }
             }
@@ -509,18 +590,20 @@ namespace VED
             _slidingUp = false;
             _slidingDown = false;
 
+            float amount = 1;
+
             List<PhysicsContact> solids = CollidingHorizontally(sign, _nearbySolids);
             if (solids.Count > 0)
             {
-                if (CanSlideUp(sign, solids))
+                if (CanSlideUp(sign, solids, out amount))
                 {
-                    PerformSlideUp();
+                    PerformSlideUp(amount);
                     return true;
                 }
 
-                if (CanSlideDown(sign, solids))
+                if (CanSlideDown(sign, solids, out amount))
                 {
-                    PerformSlideDown();
+                    PerformSlideDown(amount);
                     return true;
                 }
 
@@ -531,15 +614,15 @@ namespace VED
             List<PhysicsContact> actors = CollidingHorizontally(sign, _nearbyActors);
             if (actors.Count > 0)
             {
-                if (CanSlideUp(sign, actors))
+                if (CanSlideUp(sign, actors, out amount))
                 {
-                    PerformSlideUp();
+                    PerformSlideUp(amount);
                     return true;
                 }
 
-                if (CanSlideDown(sign, actors))
+                if (CanSlideDown(sign, actors, out amount))
                 {
-                    PerformSlideDown();
+                    PerformSlideDown(amount);
                     return true;
                 }
 
@@ -561,18 +644,20 @@ namespace VED
             _slidingLeft = false;
             _slidingRight = false;
 
+            float amount = 1;
+
             List<PhysicsContact> solids = CollidingVertically(sign, _nearbySolids);
             if (solids.Count > 0)
             {
-                if (CanSlideLeft(sign, solids))
+                if (CanSlideLeft(sign, solids, out amount))
                 {
-                    PerformSlideLeft();
+                    PerformSlideLeft(amount);
                     return true;
                 }
 
-                if (CanSlideRight(sign, solids))
+                if (CanSlideRight(sign, solids, out amount))
                 {
-                    PerformSlideRight();
+                    PerformSlideRight(amount);
                     return true;
                 }
 
@@ -583,15 +668,15 @@ namespace VED
             List<PhysicsContact> actors = CollidingVertically(sign, _nearbyActors);
             if (actors.Count > 0)
             {
-                if (CanSlideLeft(sign, actors))
+                if (CanSlideLeft(sign, actors, out amount))
                 {
-                    PerformSlideLeft();
+                    PerformSlideLeft(amount);
                     return true;
                 }
 
-                if (CanSlideRight(sign, actors))
+                if (CanSlideRight(sign, actors, out amount))
                 {
-                    PerformSlideRight();
+                    PerformSlideRight(amount);
                     return true;
                 }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VED.Utilities;
 
 namespace VED.Physics
 {
@@ -12,10 +13,10 @@ namespace VED.Physics
         public float Weight => _weight;
         [SerializeField] protected float _weight = 1f;
 
-        [SerializeField] protected bool _canPush = true;
-
         public float Strength => _strength;
         [SerializeField] protected float _strength = 1f;
+
+        [SerializeField] protected bool _canPush = true;
 
         public Dictionary<float, bool> MoveableHorizontally = new Dictionary<float, bool>()
         {
@@ -23,11 +24,19 @@ namespace VED.Physics
             { 1, true}
         };
 
+        // serialized fields for observing in inspector
+        [SerializeField, ReadOnly] bool _moveableLeft  = true;
+        [SerializeField, ReadOnly] bool _moveableRight = true;
+
         public Dictionary<float, bool> MoveableVertically = new Dictionary<float, bool>()
         {
             {-1, true},
             { 1, true}
         };
+
+        // serialized fields for observing in inspector
+        [SerializeField, ReadOnly] bool _moveableUp   = true;
+        [SerializeField, ReadOnly] bool _moveableDown = true;
 
         public bool Immoveable => _immoveable;
         protected bool _immoveable = false;
@@ -191,6 +200,11 @@ namespace VED.Physics
             MoveableHorizontally[-1] = UpdateMoveableHorizontally(-1);
             MoveableVertically  [ 1] = UpdateMoveableVertically  ( 1);
             MoveableVertically  [-1] = UpdateMoveableVertically  (-1);
+
+            _moveableRight = MoveableHorizontally[ 1];
+            _moveableLeft  = MoveableHorizontally[-1];
+            _moveableUp    = MoveableVertically  [ 1];
+            _moveableDown  = MoveableVertically  [-1];
         }
 
         protected virtual bool UpdateMoveableHorizontally(int sign)
