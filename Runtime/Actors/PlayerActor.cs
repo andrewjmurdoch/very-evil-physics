@@ -26,11 +26,11 @@ namespace VED.Physics
         protected bool _canWallplant = false;
         protected bool _crouched = false;
 
-        protected Timer _coyoteTimer = null;
-        protected Timer _crouchTimer = null;
-        protected Timer _jumpBankTimer = null;
-        protected Timer _wallplantTimer = null;
-        protected Timer _wallplantExitTimer = null;
+        [SerializeField] protected Timer _coyoteTimer = null;
+        [SerializeField] protected Timer _crouchTimer = null;
+        [SerializeField] protected Timer _jumpBankTimer = null;
+        [SerializeField] protected Timer _wallplantTimer = null;
+        [SerializeField] protected Timer _wallplantExitTimer = null;
 
         #region Init
         public override void Init()
@@ -208,7 +208,7 @@ namespace VED.Physics
                     speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
                 }
 
-                _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * TimeManager.DeltaTime;
+                _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
                 return;
             }
 
@@ -229,7 +229,7 @@ namespace VED.Physics
                 }
 
                 // move horizontally with air control value & jump peak multiplier
-                _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * TimeManager.DeltaTime;
+                _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
                 return;
             }
         }
@@ -309,7 +309,7 @@ namespace VED.Physics
             if (time >= _settings.LONG_JUMP_START_TIME && time <= _settings.LONG_JUMP_END_TIME)
             {
                 float traction = Traction;
-                _velocity.y += _settings.LONG_JUMP_SPEED * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * TimeManager.DeltaTime;
+                _velocity.y += _settings.LONG_JUMP_SPEED * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * Time.deltaTime;
             }
 
             // update long jump time
