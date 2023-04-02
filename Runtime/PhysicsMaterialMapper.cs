@@ -15,21 +15,22 @@ namespace VED.Physics
         }
         [SerializeField] private List<PhysicsMaterialTypePair> _physicsMaterialTypePairs = new List<PhysicsMaterialTypePair>();
 
-        private Dictionary<Enums.PhysicsMaterialType, PhysicsMaterial> _physicsMaterialDictionary = new Dictionary<Enums.PhysicsMaterialType, PhysicsMaterial>();
+        private Dictionary<Enums.PhysicsMaterialType, PhysicsMaterial> _physicsMaterialDictionary = null;
 
         public PhysicsMaterial this[Enums.PhysicsMaterialType physicsMaterialType]
         {
             get
             {
+                if (_physicsMaterialDictionary == null) InitPhysicsMaterialDictionary();
                 if (!_physicsMaterialDictionary.ContainsKey(physicsMaterialType)) return null;
                 return _physicsMaterialDictionary[physicsMaterialType];
             }
         }
 
-#if UNITY_EDITOR
-        public void OnValidate()
+        private void InitPhysicsMaterialDictionary()
         {
-            _physicsMaterialDictionary.Clear();
+            _physicsMaterialDictionary = new Dictionary<Enums.PhysicsMaterialType, PhysicsMaterial>();
+
             foreach (PhysicsMaterialTypePair physicsMaterialTypePair in _physicsMaterialTypePairs)
             {
                 if (physicsMaterialTypePair.PhysicsMaterial == null) continue;
@@ -38,6 +39,5 @@ namespace VED.Physics
                 _physicsMaterialDictionary.Add(physicsMaterialTypePair.PhysicsMaterialType, physicsMaterialTypePair.PhysicsMaterial);
             }
         }
-#endif
     }
 }

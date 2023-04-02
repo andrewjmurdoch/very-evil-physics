@@ -123,7 +123,7 @@ namespace VED.Physics
 
             if (!_wallplantTimer.Complete)
             {
-                float amount = Easing.Ease(Easing.LerpType.EXPO, Easing.EaseType.OUT, 0f, 1f, _wallplantTimer.Elapsed);
+                float amount = Easing.Ease(Easing.Shape.EXPO, Easing.Extent.OUT, 0f, 1f, _wallplantTimer.Elapsed);
                 _velocity.y = -_settings.WALLPLANT_SLIP_SPEED * amount;
                 return;
             }
