@@ -8,35 +8,38 @@ namespace VED.Physics
     public class PhysicsMaterialMapper : ScriptableObject
     {
         [Serializable]
-        private struct PhysicsMaterialTypePair
+        private struct PhysicsMaterialData
         {
+            [SerializeField] public string ID;
             [SerializeField] public PhysicsMaterial PhysicsMaterial;
-            [SerializeField] public Enums.PhysicsMaterialType PhysicsMaterialType; 
         }
-        [SerializeField] private List<PhysicsMaterialTypePair> _physicsMaterialTypePairs = new List<PhysicsMaterialTypePair>();
+        [SerializeField] private List<PhysicsMaterialData> _physicsMaterialData = new List<PhysicsMaterialData>();
 
-        private Dictionary<Enums.PhysicsMaterialType, PhysicsMaterial> _physicsMaterialDictionary = null;
+        private Dictionary<string, PhysicsMaterial> _physicsMaterialDictionary = null;
 
-        public PhysicsMaterial this[Enums.PhysicsMaterialType physicsMaterialType]
+        public PhysicsMaterial this[string ID]
         {
             get
             {
                 if (_physicsMaterialDictionary == null) InitPhysicsMaterialDictionary();
-                if (!_physicsMaterialDictionary.ContainsKey(physicsMaterialType)) return null;
-                return _physicsMaterialDictionary[physicsMaterialType];
+                if (_physicsMaterialDictionary.TryGetValue(ID, out PhysicsMaterial physicsMaterial))
+                {
+                    return physicsMaterial;
+                }
+                return null;
             }
         }
 
         private void InitPhysicsMaterialDictionary()
         {
-            _physicsMaterialDictionary = new Dictionary<Enums.PhysicsMaterialType, PhysicsMaterial>();
+            _physicsMaterialDictionary = new Dictionary<string, PhysicsMaterial>();
 
-            foreach (PhysicsMaterialTypePair physicsMaterialTypePair in _physicsMaterialTypePairs)
+            foreach (PhysicsMaterialData physicsMaterialData in _physicsMaterialData)
             {
-                if (physicsMaterialTypePair.PhysicsMaterial == null) continue;
-                if (_physicsMaterialDictionary.ContainsKey(physicsMaterialTypePair.PhysicsMaterialType)) continue;
+                if (physicsMaterialData.PhysicsMaterial == null) continue;
+                if (_physicsMaterialDictionary.ContainsKey(physicsMaterialData.ID)) continue;
 
-                _physicsMaterialDictionary.Add(physicsMaterialTypePair.PhysicsMaterialType, physicsMaterialTypePair.PhysicsMaterial);
+                _physicsMaterialDictionary.Add(physicsMaterialData.ID, physicsMaterialData.PhysicsMaterial);
             }
         }
     }

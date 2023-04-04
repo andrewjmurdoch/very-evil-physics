@@ -10,10 +10,10 @@ namespace VED.Physics
             public Enums.PhysicsColliderType PhysicsCollider => _physicsColliderType;
             private Enums.PhysicsColliderType _physicsColliderType = Enums.PhysicsColliderType.NONE;
 
-            public Enums.PhysicsMaterialType PhysicsMaterial => _physicsMaterialType;
-            private Enums.PhysicsMaterialType _physicsMaterialType = Enums.PhysicsMaterialType.DEFAULT;
+            public string PhysicsMaterial => _physicsMaterialType;
+            private string _physicsMaterialType = "DEFAULT";
 
-            public PhysicsTile Init(Sprite sprite, Enums.PhysicsColliderType physicsColliderType, Enums.PhysicsMaterialType physicsMaterialType)
+            public PhysicsTile Init(Sprite sprite, Enums.PhysicsColliderType physicsColliderType, string physicsMaterialType)
             {
                 _sprite = sprite;
                 _physicsColliderType = physicsColliderType;

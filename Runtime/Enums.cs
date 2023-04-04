@@ -15,12 +15,5 @@ namespace VED.Physics
             TRIANGLE_TL,
             TRIANGLE_TR
         }
-
-        public enum PhysicsMaterialType
-        {
-            DEFAULT,
-            GRASS,
-            ICE
-        }
     }
 }
