@@ -40,7 +40,10 @@ namespace VED.Physics
 
         private void InitTiles(PhysicsTilelevel tilelevel, LayerInstance definition, int sortingOrder)
         {
-            PhysicsTileset tileset = PhysicsTilesetManager.Instance.Tilesets[(int)definition.TilesetDefUid];
+            if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
+            {
+                return;
+            }
 
             _tiles = new PhysicsTile[definition.CWid, definition.CHei];
             for (int i = 0; i < definition.GridTiles.Count; i++)
