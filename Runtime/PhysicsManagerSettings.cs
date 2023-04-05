@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace VED
+namespace VED.Physics
 {
     [CreateAssetMenu(fileName = "PhysicsManagerSettings", menuName = "VED/Physics/PhysicsManagerSettings", order = 0)]
     public class PhysicsManagerSettings : ScriptableObject
