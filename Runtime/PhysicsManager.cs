@@ -11,10 +11,7 @@ namespace VED.Physics
         public PhysicsMaterialMapper PhysicsMaterialMapper => _physicsMaterialMapper;
         private PhysicsMaterialMapper _physicsMaterialMapper;
 
-        // physics step size decides the size of 1 unit of movement, set to pixel size for pixel perfect
-        // set by default to 1px/1u in 24ppu (1/24)
-        public float PhysicsStepSize => _physicsStepSize;
-        private float _physicsStepSize = 0.041666666664f;
+        public float PhysicsStepSize => _physicsManagerSettings.PhysicsStepSize;
 
         public PhysicsMaterial AtmospherePhysicsMaterial => _physicsManagerSettings.AtmospherePhysicsMaterial;
 
