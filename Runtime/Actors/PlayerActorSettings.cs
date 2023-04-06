@@ -6,7 +6,6 @@ namespace VED
     public class PlayerActorSettings : ScriptableObject
     {
         public float COYOTE_TIME;
-        public float CROUCH_THRESHOLD;
         public float CROUCH_TIME;
         public float CROUCH_FRICTION;
         public float JUMP_SPEED;
@@ -28,7 +27,6 @@ namespace VED
         public float WALLPLANT_TIME;
         public float WALLPLANT_EXIT_TIME;
         public float WALLPLANT_EXIT_THRESHOLD;
-        public float WALLPLANT_DISTANCE;
         public float WALLPLANT_JUMP_SPEED_HORIZONTAL;
         public float WALLPLANT_JUMP_SPEED_VERTICAL;
     }
