@@ -72,7 +72,7 @@ namespace VED.Physics
 
         public virtual void FixedTick()
         {
-            UpdateMoveable();
+            TickMoveable();
         }
 
         public virtual void Move(double x = 0, double y = 0, Action<List<PhysicsContact>> CollideHorizontally = null, Action<List<PhysicsContact>> CollideVertically = null)
@@ -192,7 +192,7 @@ namespace VED.Physics
             _nearby.AddRange(_nearbySolids);
         }
 
-        protected void UpdateMoveable()
+        protected void TickMoveable()
         {
             UpdateNearby();
 

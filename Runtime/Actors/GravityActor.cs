@@ -81,14 +81,14 @@ namespace VED.Physics
         public override void FixedTick()
         {
             base.FixedTick();
-            UpdateGravity();
-            UpdateGrounded();
-            UpdateMovement();
-            UpdateFriction();
-            UpdateInheritedMovement();
+            TickGravity();
+            TickGrounded();
+            TickMovement();
+            TickFriction();
+            TickInheritedMovement();
         }
 
-        protected virtual void UpdateInheritedMovement()
+        protected virtual void TickInheritedMovement()
         {
             if (_groundContact != null && _groundContact.RemoteObject is PhysicsActor actor)
             {
@@ -114,19 +114,19 @@ namespace VED.Physics
             }
         }
 
-        protected virtual void UpdateMovement()
+        protected virtual void TickMovement()
         {
             Move(_velocity.x, _velocity.y, CollideHorizontally, CollideVertically);
         }
 
-        protected virtual void UpdateGravity()
+        protected virtual void TickGravity()
         {
             // reduce y velocity by (weight x gravity)
             float applied = _slidingUp ? 0 : 1;
             _velocity.y -= applied * (_weight * _gravity * PhysicsManager.Instance.Gravity);
         }
 
-        protected virtual void UpdateFriction()
+        protected virtual void TickFriction()
         {
             float friction = Friction;
 
@@ -139,7 +139,7 @@ namespace VED.Physics
             _velocity.y -= Mathf.Sign(_velocity.y) * Mathf.Clamp((_weight * friction * Mathf.Abs(_velocity.y)), 0, Mathf.Abs(_velocity.y));
         }
 
-        protected virtual void UpdateGrounded()
+        protected virtual void TickGrounded()
         {
             PhysicsContact contact = null;
 
@@ -230,7 +230,7 @@ namespace VED.Physics
 
             if (sign == -1)
             {
-                UpdateGrounded();
+                TickGrounded();
             }
 
             float elasticity = Elasticity;

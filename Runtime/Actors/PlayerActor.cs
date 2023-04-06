@@ -58,11 +58,22 @@ namespace VED.Physics
         #region Tick
         public override void FixedTick()
         {
-            base.FixedTick();
+            TickMoveable();
+
+            _slidingUp = false;
+            _slidingDown = false;
+            _slidingLeft = false;
+            _slidingRight = false;
+
+            TickGravity();
+            TickGrounded();
             TickWallplant();
+            TickMovement();
+            TickFriction();
+            TickInheritedMovement();
         }
 
-        protected override void UpdateFriction()
+        protected override void TickFriction()
         {
             // find current friction
             float friction = Friction;
@@ -75,7 +86,7 @@ namespace VED.Physics
             _velocity.y -= Mathf.Sign(_velocity.y) * Mathf.Clamp(friction * Mathf.Abs(_velocity.y), 0, Mathf.Abs(_velocity.y));
         }
 
-        protected override void UpdateGrounded()
+        protected override void TickGrounded()
         {
             PhysicsContact GetContact()
             {
