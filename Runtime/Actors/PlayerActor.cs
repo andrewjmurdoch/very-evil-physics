@@ -8,8 +8,9 @@ namespace VED.Physics
     // todo: implement ledge grab mechanic
     public class PlayerActor : GravityActor
     {
-        [SerializeField] private new PhysicsCollider _groundCollider = null;
         [SerializeField] private PlayerActorSettings _settings = null;
+        [SerializeField] private new PhysicsCollider _groundCollider = null;
+        [SerializeField] private bool _wallplantEnabled = true;
 
         public bool Wallplanted => !_wallplantTimer.Complete;
         public bool JumpBanked => !_jumpBankTimer.Complete;
@@ -371,33 +372,35 @@ namespace VED.Physics
 
         protected bool ValidWallplant(out float wallplantSign, List<PhysicsContact> contacts)
         {
+            wallplantSign = 1f;
+            if (!_wallplantEnabled) return false;
+
             foreach (PhysicsContact contact in contacts)
             {
-                if (ValidWallplant(contact.RemoteObject, out wallplantSign))
+                if (ValidWallplant(out wallplantSign, contact.RemoteObject))
                 {
                     return true;
                 }
             }
-
-            wallplantSign = 1f;
             return false;
         }
 
         protected bool ValidWallplant(out float wallplantSign, List<PhysicsObject> remotes)
         {
+            wallplantSign = 1f;
+
             foreach (PhysicsObject remote in remotes)
             {
-                if (ValidWallplant(remote, out wallplantSign))
+                if (ValidWallplant(out wallplantSign, remote))
                 {
                     return true;
                 }
             }
 
-            wallplantSign = 1f;
             return false;
         }
 
-        protected bool ValidWallplant(PhysicsObject remote, out float wallplantSign)
+        protected bool ValidWallplant(out float wallplantSign, PhysicsObject remote)
         {
             float sign = Mathf.Sign((remote.transform.position - Transform.position).normalized.x);
 
