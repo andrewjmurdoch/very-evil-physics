@@ -11,7 +11,9 @@ namespace VED.Physics
         [SerializeField] protected float _gravity = 1f;
 
         public bool Grounded => _groundContact != null;
+#pragma warning disable CS0414
         [SerializeField, ReadOnly] private bool _grounded = false;
+#pragma warning restore CS0414
 
         [SerializeField] protected PhysicsCollider _groundCollider = null;
 
@@ -58,10 +60,10 @@ namespace VED.Physics
         public override void Init()
         {
             base.Init();
-            InitGroundContact();
+            InitGroundCollider();
         }
 
-        protected void InitGroundContact()
+        protected void InitGroundCollider()
         {
             if (_groundCollider != null) return;
 
