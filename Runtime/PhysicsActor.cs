@@ -73,18 +73,54 @@ namespace VED.Physics
         public virtual void FixedTick()
         {
             TickMoveable();
+            TickVelocity(_velocity.x, _velocity.y);
         }
 
-        public virtual void Move(double x = 0, double y = 0, Action<List<PhysicsContact>> CollideHorizontally = null, Action<List<PhysicsContact>> CollideVertically = null)
+        public virtual void FixedSubTick()
+        {
+            SubTickMove();
+        }
+
+        public virtual void SubTickMove(Action<List<PhysicsContact>> CollideHorizontally = null, Action<List<PhysicsContact>> CollideVertically = null)
+        {
+            if (_immoveable) return;
+            _immoveable = true;
+
+            double x = _xRounded + _xRemainder;
+            double y = _yRounded + _yRemainder;
+            _xRounded = Math.Sign(x) * Math.Floor(Math.Abs(x));
+            _yRounded = Math.Sign(y) * Math.Floor(Math.Abs(y));
+            _xRemainder = x - _xRounded;
+            _yRemainder = y - _yRounded;
+
+            UpdateNearby();
+
+            if (Math.Abs(_xRounded) > 0)
+            {
+                float sign = Math.Sign(_xRounded);
+                _xRounded -= sign;
+
+                MoveableHorizontally[sign] = MoveHorizontally(sign, CollideHorizontally);
+                if (!MoveableHorizontally[sign]) _xRounded = 0;
+            }
+
+            if (Math.Abs(_yRounded) > 0)
+            {
+                float sign = Math.Sign(_yRounded);
+                _yRounded -= sign;
+
+                MoveableVertically[sign] = MoveVertically(sign, CollideVertically);
+                if (!MoveableVertically[sign]) _yRounded = 0;
+            }
+
+            _immoveable = false;
+        }
+
+        public virtual void Move(double x, double y, Action<List<PhysicsContact>> CollideHorizontally = null, Action<List<PhysicsContact>> CollideVertically = null)
         {
             if (_immoveable) return;
 
-            _xRemainder += x;
-            _yRemainder += y;
-            _xRounded    = Math.Sign(_xRemainder) * Math.Floor(Math.Abs(_xRemainder));
-            _yRounded    = Math.Sign(_yRemainder) * Math.Floor(Math.Abs(_yRemainder));
-            _xRemainder -= _xRounded;
-            _yRemainder -= _yRounded;
+            TickVelocity(x, y);
 
             _immoveable = true;
 
@@ -207,6 +243,16 @@ namespace VED.Physics
             _moveableDown  = MoveableVertically  [-1];
         }
 
+        protected void TickVelocity(double x, double y)
+        {
+            _xRemainder += x;
+            _yRemainder += y;
+            _xRounded = Math.Sign(_xRemainder) * Math.Floor(Math.Abs(_xRemainder));
+            _yRounded = Math.Sign(_yRemainder) * Math.Floor(Math.Abs(_yRemainder));
+            _xRemainder -= _xRounded;
+            _yRemainder -= _yRounded;
+        }
+
         protected virtual bool UpdateMoveableHorizontally(int sign)
         {
             // physics actors are non-moveable when they are attempting to move in any direction in which they collide with a solid, immoveable object, or currently non-moveable object
@@ -320,11 +366,12 @@ namespace VED.Physics
                 }
 
                 // transfer velocity
-                float action    = Mathf.Clamp01(_strength / actor.GetTotalWeight()) * PhysicsManager.Instance.PhysicsStepSize;
-                actor.Velocity += sign * new Vector2(Mathf.Clamp(action, 0f, Mathf.Abs(Velocity.x)), 0f);
+                float weight = actor.GetTotalWeight();
+                float action = Mathf.Clamp01(_strength / weight);
+                actor.Push(x: sign * action);
 
-                float reaction  = Mathf.Clamp01(actor.GetTotalWeight() / _strength) * PhysicsManager.Instance.PhysicsStepSize;
-                Velocity       -= sign * new Vector2(Mathf.Clamp(reaction, 0f, Mathf.Abs(Velocity.x)), 0f);
+                float reaction = Mathf.Clamp01(weight / _strength);
+                _xRemainder -= sign * reaction;
             }
 
             return true;
@@ -345,14 +392,21 @@ namespace VED.Physics
                 }
 
                 // transfer velocity
-                float action = (_strength / actor.GetTotalWeight()) * PhysicsManager.Instance.PhysicsStepSize;
-                actor.Velocity += sign * new Vector2(0f, Mathf.Clamp(action, 0f, Mathf.Abs(Velocity.y)));
+                float weight = actor.GetTotalWeight();
+                float action = Mathf.Clamp01(_strength / weight);
+                actor.Push(y: sign * action);
 
-                float reaction = (actor.GetTotalWeight() / _strength) * PhysicsManager.Instance.PhysicsStepSize;
-                Velocity -= sign * new Vector2(0f, Mathf.Clamp(reaction, 0f, Mathf.Abs(Velocity.y)));
+                float reaction = Mathf.Clamp01(weight / _strength);
+                _yRemainder -= sign * reaction;
             }
 
             return true;
+        }
+
+        public void Push(double x = 0, double y = 0)
+        {
+            _xRemainder += x;
+            _yRemainder += y;
         }
 
         public virtual void Squish(List<PhysicsContact> collisions)

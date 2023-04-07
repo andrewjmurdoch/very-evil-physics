@@ -68,9 +68,14 @@ namespace VED.Physics
             TickGravity();
             TickGrounded();
             TickWallplant();
-            TickMovement();
+            TickVelocity(_velocity.x, _velocity.y);
             TickFriction();
             TickInheritedMovement();
+        }
+
+        public override void FixedSubTick()
+        {
+            SubTickMove(CollideHorizontally, CollideVertically);
         }
 
         protected override void TickFriction()

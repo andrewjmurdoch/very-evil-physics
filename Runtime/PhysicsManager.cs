@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 using VED.Utilities;
 
 namespace VED.Physics
@@ -83,7 +84,21 @@ namespace VED.Physics
 
         public void FixedTick()
         {
-            for (int i = 0; i < _actors.Count; i++) _actors[i].FixedTick();
+            int iterations = 0;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                PhysicsActor actor = _actors[i];
+                actor.FixedTick();
+                iterations = Mathf.Max(iterations, Mathf.Max(Mathf.Abs(actor.X), Mathf.Abs(actor.Y)));
+            }
+
+            for (int i = 0; i < iterations; i++)
+            {
+                for (int j = 0; j < _actors.Count; j++)
+                {
+                    _actors[j].FixedSubTick();
+                }
+            }
         }
     }
 }

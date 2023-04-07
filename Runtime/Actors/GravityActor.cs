@@ -83,40 +83,36 @@ namespace VED.Physics
             base.FixedTick();
             TickGravity();
             TickGrounded();
-            TickMovement();
+            TickVelocity(_velocity.x, _velocity.y);
             TickFriction();
             TickInheritedMovement();
+        }
+
+        public override void FixedSubTick()
+        {
+            SubTickMove(CollideHorizontally, CollideVertically);
         }
 
         protected virtual void TickInheritedMovement()
         {
             if (_groundContact != null && _groundContact.RemoteObject is PhysicsActor actor)
             {
-                float friction = Friction;
-
                 if (Mathf.Abs(actor.Velocity.x) > Mathf.Abs(_velocity.x))
                 {
-                    float strength = Mathf.Clamp01(_weight / actor.Weight);
-                    float magnitude = Mathf.Min(Mathf.Abs(actor.Velocity.x - _velocity.x), Mathf.Abs(actor.Velocity.x));
-                    float sign = Mathf.Sign(actor.Velocity.x);
+                    float strength = Mathf.Clamp01(actor.Strength / _weight);
+                    float difference = actor.Velocity.x - _velocity.x;
 
-                    _velocity.x += sign * strength * magnitude * friction;
+                    _velocity.x += strength * difference;
                 }
 
-                if (_groundContact.RemoteObject.Velocity.y > 0 && _groundContact.RemoteObject.Velocity.y >= _velocity.y)
+                if (_groundContact.RemoteObject.Velocity.y > 0 && _groundContact.RemoteObject.Velocity.y > _velocity.y)
                 {
-                    float strength = Mathf.Clamp01(_weight / actor.Weight);
-                    float magnitude = Mathf.Min(Mathf.Abs(actor.Velocity.y - _velocity.y), Mathf.Abs(actor.Velocity.y));
-                    float sign = Mathf.Sign(actor.Velocity.y);
+                    float strength = Mathf.Clamp01(actor.Strength / _weight);
+                    float difference = actor.Velocity.y - _velocity.y;
 
-                    _velocity.y += sign * strength * magnitude;
+                    _velocity.y += strength * difference;
                 }
             }
-        }
-
-        protected virtual void TickMovement()
-        {
-            Move(_velocity.x, _velocity.y, CollideHorizontally, CollideVertically);
         }
 
         protected virtual void TickGravity()

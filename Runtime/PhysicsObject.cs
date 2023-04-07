@@ -23,7 +23,7 @@ namespace VED.Physics
 
         // physics objects attached to this physics object
         public List<PhysicsContact> Attachments => _attachments;
-        protected List<PhysicsContact> _attachments = new List<PhysicsContact>();
+        [SerializeField] protected List<PhysicsContact> _attachments = new List<PhysicsContact>();
 
         // physics objects ignored by this physics object
         public List<PhysicsObject> Ignored => _ignored;
@@ -40,7 +40,9 @@ namespace VED.Physics
 
         protected double _xRemainder = 0; // remaining fraction of rounded x movement
         protected double _yRemainder = 0; // remaining fraction of rounded y movement
+        public int X => (int)_xRounded;
         protected double _xRounded = 0; // rounded int of x movement
+        public int Y => (int)_yRounded;
         protected double _yRounded = 0; // rounded int of y movement
         
         protected Transform Transform => _transform ??= transform;
