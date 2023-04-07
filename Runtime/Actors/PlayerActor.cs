@@ -9,7 +9,6 @@ namespace VED.Physics
     public class PlayerActor : GravityActor
     {
         [SerializeField] private PlayerActorSettings _settings = null;
-        [SerializeField] private new PhysicsCollider _groundCollider = null;
         [SerializeField] private bool _wallplantEnabled = true;
 
         public bool Wallplanted => !_wallplantTimer.Complete;
@@ -47,12 +46,6 @@ namespace VED.Physics
             _jumpBankTimer      = new Timer(_settings.JUMP_BANK_TIME     );
             _wallplantTimer     = new Timer(_settings.WALLPLANT_TIME     );
             _wallplantExitTimer = new Timer(_settings.WALLPLANT_EXIT_TIME);
-        }
-
-        protected override void InitGroundContact()
-        {
-            if (_groundCollider != null) return;
-            base.InitGroundContact();
         }
         #endregion
 

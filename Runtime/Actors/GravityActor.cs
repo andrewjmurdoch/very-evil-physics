@@ -13,7 +13,7 @@ namespace VED.Physics
         public bool Grounded => _groundContact != null;
         [SerializeField, ReadOnly] private bool _grounded = false;
 
-        protected PhysicsCollider _groundCollider = null;
+        [SerializeField] protected PhysicsCollider _groundCollider = null;
 
         public PhysicsContact GroundContact => _groundContact;
         protected PhysicsContact _groundContact = null;
@@ -61,8 +61,10 @@ namespace VED.Physics
             InitGroundContact();
         }
 
-        protected virtual void InitGroundContact()
+        protected void InitGroundContact()
         {
+            if (_groundCollider != null) return;
+
             PhysicsCollider lowestCollider = _colliders[0];
 
             foreach (PhysicsCollider collider in _colliders)
