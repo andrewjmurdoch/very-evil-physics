@@ -18,7 +18,8 @@ namespace VED.Physics
             _size = new Vector2(definition.PxWid / Tilemaps.Consts.TILE_SIZE, definition.PxHei / Tilemaps.Consts.TILE_SIZE);
 
             InitCells();
-            InitLayers(definition);
+            InitTileLayers(definition);
+            InitEntityLayers(definition);
 
             return this;
         }
@@ -94,13 +95,13 @@ namespace VED.Physics
             }
         }
 
-        protected override void InitLayers(Level definition)
+        protected override void InitTileLayers(Level definition)
         {
-            // find all layers which are not autolayers/int layers/entity layers
+            // find all layers which are not entity layers
             List<LayerInstance> layerDefinitions = new List<LayerInstance>();
             for (int i = 0; i < definition.LayerInstances.Count; i++)
             {
-                if (definition.LayerInstances[i].Type == Tilemaps.Consts.TILELAYER_TYPE)
+                if (definition.LayerInstances[i].Type != Consts.ENTITYLAYER_TYPE)
                 {
                     layerDefinitions.Add(definition.LayerInstances[i]);
                 }
@@ -117,7 +118,7 @@ namespace VED.Physics
 
                 if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTilelayer.KEY))
                 {
-                    PhysicsTilelayer collisionTilelayer = gameObject.AddComponent<PhysicsTilelayer>().Init(this, layerDefinitions[i], layerDefinitions.Count - i) as PhysicsTilelayer;
+                    PhysicsTilelayer collisionTilelayer = gameObject.AddComponent<PhysicsTilelayer>().Init(this, layerDefinitions[i], layerDefinitions.Count - i);
                     _physicsTilelayers.Add(layerDefinitions[i].LayerDefUid, collisionTilelayer);
                     continue;
                 }
