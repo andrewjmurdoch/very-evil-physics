@@ -45,7 +45,7 @@ namespace VED.Physics
         public int Y => (int)_yRounded;
         protected double _yRounded = 0; // rounded int of y movement
         
-        protected Transform Transform => _transform ??= transform;
+        public Transform Transform => _transform ??= transform;
         private Transform _transform = null;
 
         public virtual void Init()
