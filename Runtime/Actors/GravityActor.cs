@@ -10,6 +10,7 @@ namespace VED.Physics
         [Range(-1, 1)]
         [SerializeField] protected float _gravity = 1f;
 
+        [SerializeField] protected bool _groundEnabled = true;
         public bool Grounded => _groundContact != null;
 #pragma warning disable CS0414
         [SerializeField, ReadOnly] private bool _grounded = false;
@@ -141,6 +142,8 @@ namespace VED.Physics
 
         protected virtual void TickGrounded()
         {
+            if (_groundEnabled) return;
+
             PhysicsContact contact = null;
 
             foreach (PhysicsObject remoteObject in _nearby)
@@ -170,6 +173,8 @@ namespace VED.Physics
         #region Ground
         protected virtual void Ground(PhysicsContact ground)
         {
+            if (!_groundEnabled) return;
+
             // detach current ground if not null
             Unground();
 

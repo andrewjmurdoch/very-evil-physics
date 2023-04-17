@@ -87,6 +87,8 @@ namespace VED.Physics
 
         protected override void TickGrounded()
         {
+            if (!_groundEnabled) return;
+
             PhysicsContact GetContact()
             {
                 foreach (PhysicsObject remoteObject in _nearby)
@@ -143,6 +145,8 @@ namespace VED.Physics
         #region Ground
         protected override void Ground(PhysicsContact ground)
         {
+            if (!_groundEnabled) return;
+
             base.Ground(ground);
 
             _coyoteTimer.Reset();
