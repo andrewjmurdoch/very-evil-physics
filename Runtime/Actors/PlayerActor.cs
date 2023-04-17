@@ -93,6 +93,7 @@ namespace VED.Physics
             {
                 foreach (PhysicsObject remoteObject in _nearby)
                 {
+                    if (_ignored.Contains(remoteObject)) continue;
                     foreach (PhysicsCollider remoteCollider in remoteObject.Colliders)
                     {
                         if (_groundCollider.CollidingVertically(-1f, remoteCollider))
