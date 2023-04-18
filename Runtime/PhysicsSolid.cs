@@ -79,6 +79,14 @@ namespace VED.Physics
                 AddCellActorsToNearby(_cell.Neighbours[i]);
             }
 
+            // remove all ignored objects
+            for (int i = _nearby.Count - 1; i >= 0; i--)
+            {
+                if (_ignored.Contains(_nearby[i]))
+                {
+                    _nearby.RemoveAt(i);
+                }
+            }
         }
 
         public void Move(double x = 0, double y = 0)

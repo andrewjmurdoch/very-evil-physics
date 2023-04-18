@@ -226,6 +226,15 @@ namespace VED.Physics
 
             _nearby.AddRange(_nearbyActors);
             _nearby.AddRange(_nearbySolids);
+
+            // remove all ignored objects
+            for (int i = _nearby.Count - 1; i >= 0; i--)
+            {
+                if (_ignored.Contains(_nearby[i]))
+                {
+                    _nearby.RemoveAt(i);
+                }
+            }
         }
 
         protected void TickMoveable()
