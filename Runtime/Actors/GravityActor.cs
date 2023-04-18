@@ -142,7 +142,7 @@ namespace VED.Physics
 
         protected virtual void TickGrounded()
         {
-            if (_groundEnabled) return;
+            if (!_groundEnabled) return;
 
             PhysicsContact contact = null;
 
