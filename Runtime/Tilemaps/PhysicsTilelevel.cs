@@ -7,8 +7,8 @@ namespace VED.Physics
 {
     public partial class PhysicsTilelevel : Tilelevel
     {
-        public Dictionary<long, PhysicsTilelayer> PhysicsTilelayers => _physicsTilelayers;
-        private Dictionary<long, PhysicsTilelayer> _physicsTilelayers = new Dictionary<long, PhysicsTilelayer>();
+        public Dictionary<string, PhysicsTilelayer> PhysicsTilelayers => _physicsTilelayers;
+        private Dictionary<string, PhysicsTilelayer> _physicsTilelayers = new Dictionary<string, PhysicsTilelayer>();
 
         public Cell[,] Cells => _cells;
         [SerializeField] protected Cell[,] _cells = null;
@@ -29,7 +29,7 @@ namespace VED.Physics
             base.InitNeighbours(definition);
 
             // set up collision tile layer neighbours
-            foreach (KeyValuePair<long, PhysicsTilelayer> collisionTilelayerKVP in _physicsTilelayers)
+            foreach (KeyValuePair<string, PhysicsTilelayer> collisionTilelayerKVP in _physicsTilelayers)
             {
                 Dictionary<char, List<PhysicsTilelayer>> physicsTileLayerNeighbours = new Dictionary<char, List<PhysicsTilelayer>>()
                 {
@@ -107,8 +107,8 @@ namespace VED.Physics
                 }
             }
 
-            _tilelayers = new Dictionary<long, Tilelayer>();
-            _physicsTilelayers = new Dictionary<long, PhysicsTilelayer>();
+            _tilelayers = new Dictionary<string, Tilelayer>();
+            _physicsTilelayers = new Dictionary<string, PhysicsTilelayer>();
 
             for (int i = 0; i < layerDefinitions.Count; i++)
             {
@@ -119,11 +119,11 @@ namespace VED.Physics
                 if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTilelayer.KEY))
                 {
                     PhysicsTilelayer collisionTilelayer = gameObject.AddComponent<PhysicsTilelayer>().Init(this, layerDefinitions[i], layerDefinitions.Count - i);
-                    _physicsTilelayers.Add(layerDefinitions[i].LayerDefUid, collisionTilelayer);
+                    _physicsTilelayers.Add(layerDefinitions[i].Iid, collisionTilelayer);
                     continue;
                 }
 
-                _tilelayers.Add(layerDefinitions[i].LayerDefUid, gameObject.AddComponent<Tilelayer>().Init(layerDefinitions[i], layerDefinitions.Count - i));
+                _tilelayers.Add(layerDefinitions[i].Iid, gameObject.AddComponent<Tilelayer>().Init(layerDefinitions[i], layerDefinitions.Count - i));
             }
         }
 
@@ -139,7 +139,6 @@ namespace VED.Physics
             return _cells[cellx, celly];
         }
     }
-
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(PhysicsTilelevel))]
