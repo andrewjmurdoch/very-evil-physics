@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VED.Physics;
+using VED.Utilities;
 
 namespace VED
 {
@@ -49,16 +50,17 @@ namespace VED
         public float MIN_CONVERSION_VALUE     = 0.5f; // the min conversion rate between directions during a slide
 
         public bool SlidingUp => _slidingUp;
-        protected bool _slidingUp = false;
+        [SerializeField, ReadOnly] protected bool _slidingUp = false;
 
         public bool SlidingDown => _slidingDown;
-        protected bool _slidingDown = false;
+        [SerializeField, ReadOnly] protected bool _slidingDown = false;
 
         public bool SlidingLeft => _slidingLeft;
-        protected bool _slidingLeft = false;
+        [SerializeField, ReadOnly] protected bool _slidingLeft = false;
 
         public bool SlidingRight => _slidingRight;
-        protected bool _slidingRight = false;
+        [SerializeField, ReadOnly] protected bool _slidingRight = false;
+
         public bool SlidingVertically => _slidingDown || _slidingUp;
         public bool SlidingHorizontally => _slidingLeft || _slidingRight;
 
