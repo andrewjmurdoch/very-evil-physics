@@ -53,8 +53,8 @@ namespace VED.Physics
                 physicsObjects.Add(magnitude, physicsObject);
             }
 
-            List<PhysicsTilelevel.Cell> cells = new List<PhysicsTilelevel.Cell>();
-            void AddCell(PhysicsTilelevel.Cell cell)
+            List<PhysicsTileLevel.Cell> cells = new List<PhysicsTileLevel.Cell>();
+            void AddCell(PhysicsTileLevel.Cell cell)
             {
                 if (cells.Contains(cell)) return;
                 cells.Add(cell);
@@ -63,25 +63,25 @@ namespace VED.Physics
             // loop through world space
             // find any cells ray will intersect
             // find any neighbouring cells, of cells ray will intersect
-            PhysicsTilelevel physicsTilelevel = null;
-            List<PhysicsTilelayer> physicsTilelayers = new List<PhysicsTilelayer>();
+            PhysicsTileLevel physicsTilelevel = null;
+            List<PhysicsTileLayer> physicsTilelayers = new List<PhysicsTileLayer>();
             for (int i = 0; i < (int)magnitude; i += (int)STEP)
             {
                 Vector2 position = origin + (direction * i);
 
-                PhysicsTilelevel newPhysicsTilelevel = PhysicsTilelevelManager.Instance.GetTilelevel(position);
+                PhysicsTileLevel newPhysicsTilelevel = PhysicsTileLevelManager.Instance.GetTilelevel(position);
                 if (newPhysicsTilelevel == null) continue;
                 if (newPhysicsTilelevel != physicsTilelevel)
                 {
                     // update physicsTilelayers
                     physicsTilelevel = newPhysicsTilelevel;
-                    physicsTilelayers = physicsTilelevel.PhysicsTilelayers.Values.ToList();
+                    physicsTilelayers = physicsTilelevel.PhysicsTileLayers.Values.ToList();
                 }
 
                 // add nearby tiles to physics objects to check
                 for (int j = 0; j < physicsTilelayers.Count; j++)
                 {
-                    List<PhysicsTilelayer.PhysicsTile> nearbyTiles = physicsTilelayers[j].GetTilesNearby(position, 1);
+                    List<PhysicsTileLayer.PhysicsTile> nearbyTiles = physicsTilelayers[j].GetTilesNearby(position, 1);
                     for (int k = 0; k < nearbyTiles.Count; k++)
                     {
                         AddPhysicsObject(nearbyTiles[k]);
@@ -89,7 +89,7 @@ namespace VED.Physics
                 }
 
                 // find all cells nearby ray
-                PhysicsTilelevel.Cell cell = physicsTilelevel.GetCell(position);
+                PhysicsTileLevel.Cell cell = physicsTilelevel.GetCell(position);
                 if (cell == null) continue;
 
                 AddCell(cell);
@@ -103,7 +103,7 @@ namespace VED.Physics
             // loop through relevant cells and collate physics objects
             for (int i = 0; i < cells.Count; i++)
             {
-                PhysicsTilelevel.Cell cell = cells[i];
+                PhysicsTileLevel.Cell cell = cells[i];
 
                 // add solids
                 for (int j = 0; j < cell.Solids.Count; j++)

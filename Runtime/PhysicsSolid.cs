@@ -9,7 +9,7 @@ namespace VED.Physics
         public static Action<PhysicsSolid> Spawned;
         public static Action<PhysicsSolid> Despawned;
 
-        protected PhysicsTilelevel.Cell _cell = null;
+        protected PhysicsTileLevel.Cell _cell = null;
 
         public override void Init()
         {
@@ -38,7 +38,7 @@ namespace VED.Physics
             }
 
             // find the level this solid is in
-            PhysicsTilelevel tilelevel = PhysicsTilelevelManager.Instance.GetTilelevel(Transform.position);
+            PhysicsTileLevel tilelevel = PhysicsTileLevelManager.Instance.GetTilelevel(Transform.position);
             if (tilelevel == null)
             {
                 RemoveFromCell();
@@ -46,7 +46,7 @@ namespace VED.Physics
             }
 
             // find cell this solid is in
-            PhysicsTilelevel.Cell cell = tilelevel.GetCell(Transform.position);
+            PhysicsTileLevel.Cell cell = tilelevel.GetCell(Transform.position);
             if (cell == null)
             {
                 RemoveFromCell();
@@ -62,7 +62,7 @@ namespace VED.Physics
             }
 
             // find nearby actors based on cell + neighbour cells
-            void AddCellActorsToNearby(PhysicsTilelevel.Cell cell)
+            void AddCellActorsToNearby(PhysicsTileLevel.Cell cell)
             {
                 foreach (PhysicsActor physicsActor in cell.Actors)
                 {

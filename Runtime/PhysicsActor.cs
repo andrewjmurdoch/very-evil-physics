@@ -41,7 +41,7 @@ namespace VED.Physics
         public bool Immoveable => _immoveable;
         protected bool _immoveable = false;
 
-        protected PhysicsTilelevel.Cell _cell = null;
+        protected PhysicsTileLevel.Cell _cell = null;
         protected List<PhysicsObject> _nearbyActors = new List<PhysicsObject>();
         protected List<PhysicsObject> _nearbySolids = new List<PhysicsObject>();
 
@@ -166,7 +166,7 @@ namespace VED.Physics
             }
 
             // find the level this actor is in
-            PhysicsTilelevel physicsTilelevel = PhysicsTilelevelManager.Instance.GetTilelevel(Transform.position);
+            PhysicsTileLevel physicsTilelevel = PhysicsTileLevelManager.Instance.GetTilelevel(Transform.position);
             if (physicsTilelevel == null)
             {
                 RemoveFromCell();
@@ -174,7 +174,7 @@ namespace VED.Physics
             }
 
             // find the cell this actor is in
-            PhysicsTilelevel.Cell cell = physicsTilelevel.GetCell(Transform.position);
+            PhysicsTileLevel.Cell cell = physicsTilelevel.GetCell(Transform.position);
             if (cell == null)
             {
                 RemoveFromCell();
@@ -190,7 +190,7 @@ namespace VED.Physics
             }
 
             // find nearby actors & solids based on cell + neighbour cells
-            void AddCellObjectsToNearby(PhysicsTilelevel.Cell cell)
+            void AddCellObjectsToNearby(PhysicsTileLevel.Cell cell)
             {
                 foreach (PhysicsActor physicsActor in cell.Actors)
                 {
@@ -219,7 +219,7 @@ namespace VED.Physics
             }
 
             // find nearby tiles for each physics layer in level
-            foreach (PhysicsTilelayer physicsTilelayer in physicsTilelevel.PhysicsTilelayers.Values)
+            foreach (PhysicsTileLayer physicsTilelayer in physicsTilelevel.PhysicsTileLayers.Values)
             {
                 _nearbySolids.AddRange(physicsTilelayer.GetTilesNearby(Transform.position));
             }

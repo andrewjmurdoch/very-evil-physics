@@ -19,7 +19,7 @@ namespace VED.Physics
             _tilesets = new Dictionary<long, PhysicsTileset>();
             foreach (TilesetDefinition tilesetDefinition in definitions)
             {
-                if (tilesetDefinition.Tags.Contains(PhysicsTilelayer.KEY))
+                if (tilesetDefinition.Tags.Contains(PhysicsTileLayer.KEY))
                 {
                     _tilesets.Add(tilesetDefinition.Uid, new PhysicsTileset().Init(tilesetDefinition));
                     continue;

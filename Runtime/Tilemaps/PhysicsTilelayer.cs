@@ -5,28 +5,25 @@ using VED.Tilemaps;
 
 namespace VED.Physics
 {
-    public partial class PhysicsTilelayer : Tilelayer
+    public partial class PhysicsTileLayer : TileLayer
     {
         public const string KEY = "PHYSICS";
 
-        public PhysicsTilelevel Tilelevel => _tilelevel;
-        private PhysicsTilelevel _tilelevel = null;
-
-        public Dictionary<char, List<PhysicsTilelayer>> NeighbourCollisionTilelayers => _neighbourCollisionTilelayers;
-        private Dictionary<char, List<PhysicsTilelayer>> _neighbourCollisionTilelayers = new Dictionary<char, List<PhysicsTilelayer>>()
+        public Dictionary<char, List<PhysicsTileLayer>> NeighbourCollisionTilelayers => _neighbourCollisionTilelayers;
+        private Dictionary<char, List<PhysicsTileLayer>> _neighbourCollisionTilelayers = new Dictionary<char, List<PhysicsTileLayer>>()
         {
-            { 'n', new List<PhysicsTilelayer>() },
-            { 'e', new List<PhysicsTilelayer>() },
-            { 's', new List<PhysicsTilelayer>() },
-            { 'w', new List<PhysicsTilelayer>() },
+            { 'n', new List<PhysicsTileLayer>() },
+            { 'e', new List<PhysicsTileLayer>() },
+            { 's', new List<PhysicsTileLayer>() },
+            { 'w', new List<PhysicsTileLayer>() },
         };
         
         new public PhysicsTile[,] Tiles => _tiles;
         new protected PhysicsTile[,] _tiles = null;
         
-        public PhysicsTilelayer Init(PhysicsTilelevel tilelevel, LayerInstance definition, int sortingOrder)
+        public PhysicsTileLayer Init(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
         {
-            _tilelevel = tilelevel;
+            _id = definition.Iid;
 
             if (definition.Type == Consts.TILELAYER_TYPE) return InitTilelayer(tilelevel, definition, sortingOrder);
             if (definition.Type == Consts.AUTOLAYER_TYPE) return InitAutolayer(tilelevel, definition, sortingOrder);
@@ -34,12 +31,12 @@ namespace VED.Physics
             return this;
         }
 
-        public void InitNeighbours(Dictionary<char, List<PhysicsTilelayer>> neighbourCollisionTilelayers)
+        public void InitNeighbours(Dictionary<char, List<PhysicsTileLayer>> neighbourCollisionTilelayers)
         {
             _neighbourCollisionTilelayers = neighbourCollisionTilelayers;
         }
 
-        protected PhysicsTilelayer InitTilelayer(PhysicsTilelevel tilelevel, LayerInstance definition, int sortingOrder)
+        protected PhysicsTileLayer InitTilelayer(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
         {
             if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
             {
@@ -60,7 +57,7 @@ namespace VED.Physics
             return this;
         }
 
-        protected PhysicsTilelayer InitAutolayer(PhysicsTilelevel tilelevel, LayerInstance definition, int sortingOrder)
+        protected PhysicsTileLayer InitAutolayer(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
         {
             if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
             {
@@ -81,7 +78,7 @@ namespace VED.Physics
             return this;
         }
 
-        protected PhysicsTilelayer InitIntlayer(PhysicsTilelevel tilelevel, LayerInstance definition, int sortingOrder)
+        protected PhysicsTileLayer InitIntlayer(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
         {
             if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
             {
@@ -102,7 +99,7 @@ namespace VED.Physics
             return this;
         }
 
-        protected PhysicsTile InitTile(PhysicsTilelevel tilelevel, PhysicsTileset.PhysicsTile tilesetTile, int x, int y, int sortingOrder)
+        protected PhysicsTile InitTile(PhysicsTileLevel tilelevel, PhysicsTileset.PhysicsTile tilesetTile, int x, int y, int sortingOrder)
         {
             GameObject gameObject = new GameObject("Tile [" + x + ", " + y + "]");
             gameObject.transform.SetParent(transform);
@@ -111,8 +108,8 @@ namespace VED.Physics
 
             PhysicsTile tile = gameObject.AddComponent<PhysicsTile>().Init(tilesetTile, sortingOrder);
 
-            int cellx = x / PhysicsTilelevel.Cell.Size;
-            int celly = y / PhysicsTilelevel.Cell.Size;
+            int cellx = x / PhysicsTileLevel.Cell.Size;
+            int celly = y / PhysicsTileLevel.Cell.Size;
             tilelevel.Cells[cellx, celly].Tiles.Add(tile);
 
             _tiles[x, y] = tile;
@@ -121,10 +118,10 @@ namespace VED.Physics
 
         public List<PhysicsTile> GetTilesNearby(Vector2 position, int range = Tilemaps.Consts.NEARBY_TILE_RANGE)
         {
-            return GetTilesNearby(position, range, new List<PhysicsTilelayer>());
+            return GetTilesNearby(position, range, new List<PhysicsTileLayer>());
         }
         
-        public List<PhysicsTile> GetTilesNearby(Vector2 position, int range, List<PhysicsTilelayer> consideredCollisionTileLayers)
+        public List<PhysicsTile> GetTilesNearby(Vector2 position, int range, List<PhysicsTileLayer> consideredCollisionTileLayers)
         {
             List<PhysicsTile> tiles = new List<PhysicsTile>();
             
@@ -162,7 +159,7 @@ namespace VED.Physics
             return tiles;
         }
 
-        private List<PhysicsTile> GetNeighbourTilesNearby(Vector2 position, int range, List<PhysicsTilelayer> consideredCollisionTileLayers)
+        private List<PhysicsTile> GetNeighbourTilesNearby(Vector2 position, int range, List<PhysicsTileLayer> consideredCollisionTileLayers)
         {
             List<PhysicsTile> tiles = new List<PhysicsTile>();
             
@@ -173,7 +170,7 @@ namespace VED.Physics
 
             void GetNeighbourTiles(char direction)
             {
-                foreach (PhysicsTilelayer neighbourCollisionTilelayer in _neighbourCollisionTilelayers[direction])
+                foreach (PhysicsTileLayer neighbourCollisionTilelayer in _neighbourCollisionTilelayers[direction])
                 {
                     if (consideredCollisionTileLayers.Contains(neighbourCollisionTilelayer)) continue;
                     tiles.AddRange(neighbourCollisionTilelayer.GetTilesNearby(position, range, consideredCollisionTileLayers));

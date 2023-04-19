@@ -5,21 +5,21 @@ using VED.Utilities;
 
 namespace VED.Physics
 {
-    public class PhysicsTilelevelManager : Singleton<PhysicsTilelevelManager>
+    public class PhysicsTileLevelManager : Singleton<PhysicsTileLevelManager>
     {
-        public Dictionary<string, PhysicsTilelevel> Tilelevels => _tilelevels;
-        private Dictionary<string, PhysicsTilelevel> _tilelevels = new Dictionary<string, PhysicsTilelevel>();
+        public Dictionary<string, PhysicsTileLevel> Tilelevels => _tilelevels;
+        private Dictionary<string, PhysicsTileLevel> _tilelevels = new Dictionary<string, PhysicsTileLevel>();
 
-        public PhysicsTilelevelManager Init(List<Level> definitions)
+        public PhysicsTileLevelManager Init(List<Level> definitions)
         {
-            _tilelevels = new Dictionary<string, PhysicsTilelevel>();
+            _tilelevels = new Dictionary<string, PhysicsTileLevel>();
 
             for (int i = 0; i < definitions.Count; i++)
             {
                 GameObject gameObject = new GameObject("Tilelevel: " + definitions[i].Identifier);
                 gameObject.transform.localPosition = new Vector2(definitions[i].WorldX / Tilemaps.Consts.TILE_SIZE, -definitions[i].WorldY / Tilemaps.Consts.TILE_SIZE);
 
-                _tilelevels.Add(definitions[i].Iid, gameObject.AddComponent<PhysicsTilelevel>().Init(definitions[i]));
+                _tilelevels.Add(definitions[i].Iid, gameObject.AddComponent<PhysicsTileLevel>().Init(definitions[i]));
             }
 
             for (int i = 0; i < definitions.Count; i++)
@@ -30,9 +30,9 @@ namespace VED.Physics
             return this;
         }
 
-        public PhysicsTilelevel GetTilelevel(Vector2 position)
+        public PhysicsTileLevel GetTilelevel(Vector2 position)
         {
-            foreach (PhysicsTilelevel physicsTilelevel in _tilelevels.Values)
+            foreach (PhysicsTileLevel physicsTilelevel in _tilelevels.Values)
             {
                 if (   (position.x >= physicsTilelevel.transform.position.x)
                     && (position.x <  physicsTilelevel.transform.position.x + physicsTilelevel.Size.x)

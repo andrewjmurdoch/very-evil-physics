@@ -3,7 +3,7 @@ using VED.Tilemaps;
 
 namespace VED.Physics
 {
-    public partial class PhysicsTilelayer : Tilelayer
+    public partial class PhysicsTileLayer : TileLayer
     {
         public class PhysicsTile : PhysicsSolid
         {

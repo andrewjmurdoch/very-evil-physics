@@ -5,16 +5,17 @@ using VED.Tilemaps;
 
 namespace VED.Physics
 {
-    public partial class PhysicsTilelevel : Tilelevel
+    public partial class PhysicsTileLevel : TileLevel
     {
-        public Dictionary<string, PhysicsTilelayer> PhysicsTilelayers => _physicsTilelayers;
-        private Dictionary<string, PhysicsTilelayer> _physicsTilelayers = new Dictionary<string, PhysicsTilelayer>();
+        public Dictionary<string, PhysicsTileLayer> PhysicsTileLayers => _physicsTileLayers;
+        private Dictionary<string, PhysicsTileLayer> _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
 
         public Cell[,] Cells => _cells;
         [SerializeField] protected Cell[,] _cells = null;
 
-        public new PhysicsTilelevel Init(Level definition)
+        public new PhysicsTileLevel Init(Level definition)
         {
+            _id = definition.Iid;
             _size = new Vector2(definition.PxWid / Tilemaps.Consts.TILE_SIZE, definition.PxHei / Tilemaps.Consts.TILE_SIZE);
 
             InitCells();
@@ -29,25 +30,25 @@ namespace VED.Physics
             base.InitNeighbours(definition);
 
             // set up collision tile layer neighbours
-            foreach (KeyValuePair<string, PhysicsTilelayer> collisionTilelayerKVP in _physicsTilelayers)
+            foreach (KeyValuePair<string, PhysicsTileLayer> collisionTilelayerKVP in _physicsTileLayers)
             {
-                Dictionary<char, List<PhysicsTilelayer>> physicsTileLayerNeighbours = new Dictionary<char, List<PhysicsTilelayer>>()
+                Dictionary<char, List<PhysicsTileLayer>> physicsTileLayerNeighbours = new Dictionary<char, List<PhysicsTileLayer>>()
                 {
-                    { 'n', new List<PhysicsTilelayer>() },
-                    { 'e', new List<PhysicsTilelayer>() },
-                    { 's', new List<PhysicsTilelayer>() },
-                    { 'w', new List<PhysicsTilelayer>() }
+                    { 'n', new List<PhysicsTileLayer>() },
+                    { 'e', new List<PhysicsTileLayer>() },
+                    { 's', new List<PhysicsTileLayer>() },
+                    { 'w', new List<PhysicsTileLayer>() }
                 };
                 
-                foreach (KeyValuePair<char, List<Tilelevel>> neighbourTilelevelKVP in _neighbourTilelevels)
+                foreach (KeyValuePair<char, List<TileLevel>> neighbourTilelevelKVP in _neighbourTileLevels)
                 {
-                    foreach (Tilelevel neighbourTilelevel in neighbourTilelevelKVP.Value)
+                    foreach (TileLevel neighbourTilelevel in neighbourTilelevelKVP.Value)
                     {
-                        if (neighbourTilelevel is PhysicsTilelevel neighbourPhysicsTilelevel)
+                        if (neighbourTilelevel is PhysicsTileLevel neighbourPhysicsTilelevel)
                         {
-                            if (!neighbourPhysicsTilelevel.PhysicsTilelayers.ContainsKey(collisionTilelayerKVP.Key)) continue;
+                            if (!neighbourPhysicsTilelevel.PhysicsTileLayers.ContainsKey(collisionTilelayerKVP.Key)) continue;
 
-                            physicsTileLayerNeighbours[neighbourTilelevelKVP.Key].Add(neighbourPhysicsTilelevel.PhysicsTilelayers[collisionTilelayerKVP.Key]);
+                            physicsTileLayerNeighbours[neighbourTilelevelKVP.Key].Add(neighbourPhysicsTilelevel.PhysicsTileLayers[collisionTilelayerKVP.Key]);
                         }
                     }
                 }
@@ -107,8 +108,8 @@ namespace VED.Physics
                 }
             }
 
-            _tilelayers = new Dictionary<string, Tilelayer>();
-            _physicsTilelayers = new Dictionary<string, PhysicsTilelayer>();
+            _tileLayers = new Dictionary<string, TileLayer>();
+            _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
 
             for (int i = 0; i < layerDefinitions.Count; i++)
             {
@@ -116,14 +117,14 @@ namespace VED.Physics
                 gameObject.transform.SetParent(transform);
                 gameObject.transform.localPosition = Vector3.zero;
 
-                if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTilelayer.KEY))
+                if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTileLayer.KEY))
                 {
-                    PhysicsTilelayer collisionTilelayer = gameObject.AddComponent<PhysicsTilelayer>().Init(this, layerDefinitions[i], layerDefinitions.Count - i);
-                    _physicsTilelayers.Add(layerDefinitions[i].Iid, collisionTilelayer);
+                    PhysicsTileLayer collisionTilelayer = gameObject.AddComponent<PhysicsTileLayer>().Init(this, layerDefinitions[i], layerDefinitions.Count - i);
+                    _physicsTileLayers.Add(layerDefinitions[i].Iid, collisionTilelayer);
                     continue;
                 }
 
-                _tilelayers.Add(layerDefinitions[i].Iid, gameObject.AddComponent<Tilelayer>().Init(layerDefinitions[i], layerDefinitions.Count - i));
+                _tileLayers.Add(layerDefinitions[i].Iid, gameObject.AddComponent<TileLayer>().Init(layerDefinitions[i], layerDefinitions.Count - i));
             }
         }
 
@@ -141,7 +142,7 @@ namespace VED.Physics
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(PhysicsTilelevel))]
+    [CustomEditor(typeof(PhysicsTileLevel))]
     public class TilelevelEditor : Editor
     {
         private const float THICKNESS = 2f;
@@ -149,22 +150,22 @@ namespace VED.Physics
         public void OnSceneGUI()
         {
             // cast
-            PhysicsTilelevel tilelevel = target as PhysicsTilelevel;
+            PhysicsTileLevel tilelevel = target as PhysicsTileLevel;
 
             // draw
             Handles.color = Color.green;
 
-            int width  = Mathf.CeilToInt(tilelevel.Size.x / PhysicsTilelevel.Cell.Size);
-            int height = Mathf.CeilToInt(tilelevel.Size.y / PhysicsTilelevel.Cell.Size);
+            int width  = Mathf.CeilToInt(tilelevel.Size.x / PhysicsTileLevel.Cell.Size);
+            int height = Mathf.CeilToInt(tilelevel.Size.y / PhysicsTileLevel.Cell.Size);
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    Vector2 A = new Vector2(tilelevel.transform.position.x + x * PhysicsTilelevel.Cell.Size, tilelevel.transform.position.y - y * PhysicsTilelevel.Cell.Size);
-                    Vector2 B = A + Vector2.right * PhysicsTilelevel.Cell.Size;
-                    Vector2 C = B + Vector2.down * PhysicsTilelevel.Cell.Size;
-                    Vector2 D = A + Vector2.down * PhysicsTilelevel.Cell.Size;
+                    Vector2 A = new Vector2(tilelevel.transform.position.x + x * PhysicsTileLevel.Cell.Size, tilelevel.transform.position.y - y * PhysicsTileLevel.Cell.Size);
+                    Vector2 B = A + Vector2.right * PhysicsTileLevel.Cell.Size;
+                    Vector2 C = B + Vector2.down * PhysicsTileLevel.Cell.Size;
+                    Vector2 D = A + Vector2.down * PhysicsTileLevel.Cell.Size;
 
                     Handles.DrawLine(A, B, THICKNESS);
                     Handles.DrawLine(B, C, THICKNESS);
