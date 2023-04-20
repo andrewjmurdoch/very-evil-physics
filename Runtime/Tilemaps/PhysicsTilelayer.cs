@@ -21,13 +21,13 @@ namespace VED.Physics
         new public PhysicsTile[,] Tiles => _tiles;
         new protected PhysicsTile[,] _tiles = null;
         
-        public PhysicsTileLayer Init(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
+        public PhysicsTileLayer Init(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder)
         {
             _id = definition.Iid;
 
-            if (definition.Type == Consts.TILELAYER_TYPE) return InitTilelayer(tilelevel, definition, sortingOrder);
-            if (definition.Type == Consts.AUTOLAYER_TYPE) return InitAutolayer(tilelevel, definition, sortingOrder);
-            if (definition.Type == Consts.INTLAYER_TYPE ) return InitIntlayer (tilelevel, definition, sortingOrder);
+            if (definition.Type == Consts.TILELAYER_TYPE) return InitTilelayer(tileLevel, definition, sortingOrder);
+            if (definition.Type == Consts.AUTOLAYER_TYPE) return InitAutolayer(tileLevel, definition, sortingOrder);
+            if (definition.Type == Consts.INTLAYER_TYPE ) return InitIntlayer (tileLevel, definition, sortingOrder);
             return this;
         }
 
@@ -36,7 +36,7 @@ namespace VED.Physics
             _neighbourCollisionTilelayers = neighbourCollisionTilelayers;
         }
 
-        protected PhysicsTileLayer InitTilelayer(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
+        protected PhysicsTileLayer InitTilelayer(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder)
         {
             if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
             {
@@ -51,13 +51,13 @@ namespace VED.Physics
                 int x = (int)definition.GridTiles[i].Px[0] / Consts.TILE_SIZE;
                 int y = (int)definition.GridTiles[i].Px[1] / Consts.TILE_SIZE;
 
-                InitTile(tilelevel, tilesetTile, x, y, sortingOrder);
+                InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
 
             return this;
         }
 
-        protected PhysicsTileLayer InitAutolayer(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
+        protected PhysicsTileLayer InitAutolayer(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder)
         {
             if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
             {
@@ -72,13 +72,13 @@ namespace VED.Physics
                 int x = (int)definition.AutoLayerTiles[i].Px[0] / Consts.TILE_SIZE;
                 int y = (int)definition.AutoLayerTiles[i].Px[1] / Consts.TILE_SIZE;
 
-                InitTile(tilelevel, tilesetTile, x, y, sortingOrder);
+                InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
 
             return this;
         }
 
-        protected PhysicsTileLayer InitIntlayer(PhysicsTileLevel tilelevel, LayerInstance definition, int sortingOrder)
+        protected PhysicsTileLayer InitIntlayer(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder)
         {
             if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
             {
@@ -93,13 +93,13 @@ namespace VED.Physics
                 int x = (int)definition.AutoLayerTiles[i].Px[0] / Consts.TILE_SIZE;
                 int y = (int)definition.AutoLayerTiles[i].Px[1] / Consts.TILE_SIZE;
 
-                InitTile(tilelevel, tilesetTile, x, y, sortingOrder);
+                InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
 
             return this;
         }
 
-        protected PhysicsTile InitTile(PhysicsTileLevel tilelevel, PhysicsTileset.PhysicsTile tilesetTile, int x, int y, int sortingOrder)
+        protected PhysicsTile InitTile(PhysicsTileLevel tileLevel, PhysicsTileset.PhysicsTile tilesetTile, int x, int y, int sortingOrder)
         {
             GameObject gameObject = new GameObject("Tile [" + x + ", " + y + "]");
             gameObject.transform.SetParent(transform);
@@ -110,7 +110,7 @@ namespace VED.Physics
 
             int cellx = x / PhysicsTileLevel.Cell.Size;
             int celly = y / PhysicsTileLevel.Cell.Size;
-            tilelevel.Cells[cellx, celly].Tiles.Add(tile);
+            tileLevel.Cells[cellx, celly].Tiles.Add(tile);
 
             _tiles[x, y] = tile;
             return tile;

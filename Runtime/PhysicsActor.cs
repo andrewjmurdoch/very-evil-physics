@@ -166,7 +166,7 @@ namespace VED.Physics
             }
 
             // find the level this actor is in
-            PhysicsTileLevel physicsTilelevel = PhysicsTileLevelManager.Instance.GetTilelevel(Transform.position);
+            PhysicsTileLevel physicsTilelevel = PhysicsTileLevelManager.Instance.GetTileLevel(Transform.position);
             if (physicsTilelevel == null)
             {
                 RemoveFromCell();

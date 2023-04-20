@@ -38,15 +38,15 @@ namespace VED.Physics
             }
 
             // find the level this solid is in
-            PhysicsTileLevel tilelevel = PhysicsTileLevelManager.Instance.GetTilelevel(Transform.position);
-            if (tilelevel == null)
+            PhysicsTileLevel tileLevel = PhysicsTileLevelManager.Instance.GetTileLevel(Transform.position);
+            if (tileLevel == null)
             {
                 RemoveFromCell();
                 return;
             }
 
             // find cell this solid is in
-            PhysicsTileLevel.Cell cell = tilelevel.GetCell(Transform.position);
+            PhysicsTileLevel.Cell cell = tileLevel.GetCell(Transform.position);
             if (cell == null)
             {
                 RemoveFromCell();

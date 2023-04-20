@@ -113,7 +113,7 @@ namespace VED.Physics
 
             for (int i = 0; i < layerDefinitions.Count; i++)
             {
-                GameObject gameObject = new GameObject("Tilelayer: " + layerDefinitions[i].Identifier);
+                GameObject gameObject = new GameObject("TileLayer: " + layerDefinitions[i].Identifier);
                 gameObject.transform.SetParent(transform);
                 gameObject.transform.localPosition = Vector3.zero;
 
@@ -150,19 +150,19 @@ namespace VED.Physics
         public void OnSceneGUI()
         {
             // cast
-            PhysicsTileLevel tilelevel = target as PhysicsTileLevel;
+            PhysicsTileLevel tileLevel = target as PhysicsTileLevel;
 
             // draw
             Handles.color = Color.green;
 
-            int width  = Mathf.CeilToInt(tilelevel.Size.x / PhysicsTileLevel.Cell.Size);
-            int height = Mathf.CeilToInt(tilelevel.Size.y / PhysicsTileLevel.Cell.Size);
+            int width  = Mathf.CeilToInt(tileLevel.Size.x / PhysicsTileLevel.Cell.Size);
+            int height = Mathf.CeilToInt(tileLevel.Size.y / PhysicsTileLevel.Cell.Size);
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    Vector2 A = new Vector2(tilelevel.transform.position.x + x * PhysicsTileLevel.Cell.Size, tilelevel.transform.position.y - y * PhysicsTileLevel.Cell.Size);
+                    Vector2 A = new Vector2(tileLevel.transform.position.x + x * PhysicsTileLevel.Cell.Size, tileLevel.transform.position.y - y * PhysicsTileLevel.Cell.Size);
                     Vector2 B = A + Vector2.right * PhysicsTileLevel.Cell.Size;
                     Vector2 C = B + Vector2.down * PhysicsTileLevel.Cell.Size;
                     Vector2 D = A + Vector2.down * PhysicsTileLevel.Cell.Size;

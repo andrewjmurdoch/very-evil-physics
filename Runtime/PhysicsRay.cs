@@ -69,7 +69,7 @@ namespace VED.Physics
             {
                 Vector2 position = origin + (direction * i);
 
-                PhysicsTileLevel newPhysicsTilelevel = PhysicsTileLevelManager.Instance.GetTilelevel(position);
+                PhysicsTileLevel newPhysicsTilelevel = PhysicsTileLevelManager.Instance.GetTileLevel(position);
                 if (newPhysicsTilelevel == null) continue;
                 if (newPhysicsTilelevel != physicsTilelevel)
                 {
