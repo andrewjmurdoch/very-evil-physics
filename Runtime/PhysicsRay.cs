@@ -65,7 +65,7 @@ namespace VED.Physics
             // find any neighbouring cells, of cells ray will intersect
             PhysicsTileLevel physicsTilelevel = null;
             List<PhysicsTileLayer> physicsTilelayers = new List<PhysicsTileLayer>();
-            for (int i = 0; i < (int)magnitude; i += (int)STEP)
+            for (int i = 0; i <= (int)magnitude; i += (int)STEP)
             {
                 Vector2 position = origin + (direction * i);
 
