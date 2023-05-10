@@ -64,6 +64,7 @@ namespace VED.Physics
 
         private void AddActor(PhysicsActor actor)
         {
+            if (_actors.Contains(actor)) return;
             _actors.Add(actor);
         }
 
@@ -74,6 +75,7 @@ namespace VED.Physics
 
         private void AddSolid(PhysicsSolid solid)
         {
+            if (_solids.Contains(solid)) return;
             _solids.Add(solid);
         }
 

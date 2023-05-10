@@ -11,6 +11,16 @@ namespace VED.Physics
 
         protected PhysicsTileLevel.Cell _cell = null;
 
+        public virtual void OnEnable()
+        {
+            Init();
+        }
+
+        protected void OnDisable()
+        {
+            Deinit();
+        }
+
         public override void Init()
         {
             base.Init();
@@ -19,9 +29,11 @@ namespace VED.Physics
             UpdateNearby();
         }
 
-        protected void OnDisable()
+        public override void Deinit()
         {
-            if (_cell != null) _cell.Solids.Remove(this);
+            base.Deinit();
+
+            _cell?.Solids.Remove(this);
             Despawned?.Invoke(this);
         }
 

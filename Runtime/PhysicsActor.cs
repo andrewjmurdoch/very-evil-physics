@@ -60,12 +60,15 @@ namespace VED.Physics
         public override void Init()
         {
             base.Init();
+
             Spawned?.Invoke(this);
             UpdateNearby();
         }
 
-        public virtual void Deinit()
+        public override void Deinit()
         {
+            base.Deinit();
+
             _cell?.Actors.Remove(this);
             Despawned?.Invoke(this);
         }

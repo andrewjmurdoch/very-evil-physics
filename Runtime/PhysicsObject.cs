@@ -54,6 +54,15 @@ namespace VED.Physics
             _currentPhysicsMaterial = _physicsMaterial;
         }
 
+        public virtual void Deinit()
+        {
+            for (int i = _attachments.Count - 1; i >= 0; i--)
+            {
+                Detach(_attachments[i]);
+            }
+            _attachments.Clear();
+        }
+
         public void Attach(PhysicsContact attachment)
         {
             if (attachment.LocalObject != this)
