@@ -146,12 +146,11 @@ namespace VED.Physics
 
         public void Unignore(PhysicsObject physicsObject)
         {
-            if (_ignored.Contains(physicsObject))
-            {
-                _ignored.Remove(physicsObject);
-                _ignoredTimers[physicsObject].Reset();
-                _ignoredTimers.Remove(physicsObject);
-            }
+            _ignored.Remove(physicsObject);
+
+            if (!_ignoredTimers.TryGetValue(physicsObject, out Timer timer)) return;
+            _ignoredTimers.Remove(physicsObject);
+            timer.Reset();
         }
 
         public void Unignore(List<PhysicsObject> physicsObjects)
