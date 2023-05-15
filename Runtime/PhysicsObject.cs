@@ -107,17 +107,33 @@ namespace VED.Physics
             _attachments.RemoveAll(a => a.RemoteObject == attachment);
         }
 
-        public void Ignore(PhysicsObject physicsObject, float time = 0)
+        public void Ignore(PhysicsObject physicsObject, float time = -1f)
         {
+            Timer timer;
+
+            if (time <= 0f)
+            {
+                if (_ignored.Contains(physicsObject) && _ignoredTimers.TryGetValue(physicsObject, out timer))
+                {
+                    timer.Reset();
+                    _ignoredTimers.Remove(physicsObject);
+                    return;
+                }
+
+                _ignored.Add(physicsObject);
+                return;
+            }
+
             if (_ignored.Contains(physicsObject))
             {
-                _ignoredTimers[physicsObject].Set(null, () => { Unignore(physicsObject); }, time);
+                _ignoredTimers[physicsObject].Set(callback: () => { Unignore(physicsObject); }, duration: time);
                 return;
             }
 
             _ignored.Add(physicsObject);
-            _ignoredTimers.Add(physicsObject, new Timer(time));
-            _ignoredTimers[physicsObject].Set(null, () => { Unignore(physicsObject); });
+            timer = new Timer(time);
+            timer.Set(callback: () => { Unignore(physicsObject); });
+            _ignoredTimers.Add(physicsObject, timer);
         }
 
         public void Ignore(List<PhysicsObject> physicsObjects, float time = 0)
