@@ -80,6 +80,12 @@ namespace VED.Physics
 
             _groundCollider = lowestCollider;
         }
+
+        public override void Deinit()
+        {
+            Unground();
+            base.Deinit();
+        }
         #endregion
 
         #region Tick
