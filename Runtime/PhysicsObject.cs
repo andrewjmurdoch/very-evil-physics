@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using VED.Utilities;
 
@@ -250,4 +251,141 @@ namespace VED.Physics
             return nearby;
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(PhysicsObject), true)]
+    public class PhysicsObjectEditor : Editor
+    {
+        protected Vector2 _direction = Vector2.left;
+
+        protected float _vDirection = -1;
+        protected float _hDirection = -1;
+
+        protected const float SCALE = 0.1f;
+        protected const float THICKNESS = 2f;
+
+        public void OnSceneGUI()
+        {
+            // cast
+            PhysicsObject o = target as PhysicsObject;
+
+            foreach (PhysicsCollider collider in o.Colliders)
+            {
+                if (collider is PhysicsColliderCircle circle)
+                {
+                    RenderPhysicsColliderCircle(circle);
+                    continue;
+                }
+
+                if (collider is PhysicsColliderSquare square)
+                {
+                    RenderPhysicsColliderSquare(square);
+                    continue;
+                }
+
+                if (collider is PhysicsColliderTriangle triangle)
+                {
+                    RenderPhysicsColliderTriangle(triangle);
+                    continue;
+                }
+            }
+        }
+
+        protected void RenderPhysicsColliderCircle(PhysicsColliderCircle collider)
+        {
+            // draw
+            Handles.color = Color.cyan;
+            Handles.DrawWireDisc(collider.Position, Vector3.back, collider.Radius, THICKNESS);
+
+            // update radius
+            EditorGUI.BeginChangeCheck();
+            Vector2 radiusPosition = Handles.FreeMoveHandle(collider.Position + _direction * collider.Radius, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(collider, "Changed Radius");
+
+                collider.Radius = (radiusPosition - collider.Position).magnitude;
+                _direction = (radiusPosition - collider.Position).normalized;
+            }
+
+            // update centre
+            EditorGUI.BeginChangeCheck();
+            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(collider, "Changed Centre");
+
+                collider.Centre = centrePosition - (Vector2)collider.transform.position;
+            }
+        }
+
+        protected void RenderPhysicsColliderSquare(PhysicsColliderSquare collider)
+        {
+            // draw
+            Handles.color = Color.cyan;
+            Handles.DrawLine(collider.A, collider.B, THICKNESS);
+            Handles.DrawLine(collider.B, collider.D, THICKNESS);
+            Handles.DrawLine(collider.C, collider.D, THICKNESS);
+            Handles.DrawLine(collider.A, collider.C, THICKNESS);
+
+            // update size
+            EditorGUI.BeginChangeCheck();
+            Vector2 h = Handles.FreeMoveHandle(collider.Position + (Vector2.right * (_hDirection * (collider.Size.x / 2f))), Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 v = Handles.FreeMoveHandle(collider.Position + (Vector2.up * (_vDirection * (collider.Size.y / 2f))), Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(collider, "Changed Size");
+
+                collider.Size = new Vector2((collider.Position - h).magnitude * 2f, (collider.Position - v).magnitude * 2f);
+                _hDirection = Mathf.Sign((h - collider.Position).x);
+                _vDirection = Mathf.Sign((v - collider.Position).y);
+            }
+
+            // update centre
+            EditorGUI.BeginChangeCheck();
+            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(collider, "Changed Centre");
+
+                collider.Centre = centrePosition - (Vector2)collider.transform.position;
+            }
+        }
+
+        protected void RenderPhysicsColliderTriangle(PhysicsColliderTriangle collider)
+        {
+            // draw
+            Handles.color = Color.cyan;
+            Handles.DrawLine(collider.A, collider.B, THICKNESS);
+            Handles.DrawLine(collider.B, collider.C, THICKNESS);
+            Handles.DrawLine(collider.C, collider.A, THICKNESS);
+
+            // update centre
+            EditorGUI.BeginChangeCheck();
+            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(collider, "Changed Centre");
+
+                collider.Centre = centrePosition - (Vector2)collider.transform.position;
+            }
+
+            // update points A, B, C
+            EditorGUI.BeginChangeCheck();
+            Vector2 A = Handles.FreeMoveHandle(collider.A, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 B = Handles.FreeMoveHandle(collider.B, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 C = Handles.FreeMoveHandle(collider.C, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(collider, "Changed Shape");
+
+                collider.Centre = ((A + B + C) / 3f) - (Vector2)collider.transform.position;
+                collider.mA = A - collider.Position;
+                collider.mB = B - collider.Position;
+                collider.mC = C - collider.Position;
+            }
+        }
+    }
+#endif
 }
