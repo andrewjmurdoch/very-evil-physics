@@ -119,12 +119,12 @@ namespace VED.Physics
 
                 if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTileLayer.KEY))
                 {
-                    PhysicsTileLayer collisionTilelayer = gameObject.AddComponent<PhysicsTileLayer>().Init(this, layerDefinitions[i], layerDefinitions.Count - i);
+                    PhysicsTileLayer collisionTilelayer = gameObject.AddComponent<PhysicsTileLayer>().Init(this, layerDefinitions[i], -i);
                     _physicsTileLayers.Add(layerDefinitions[i].Iid, collisionTilelayer);
                     continue;
                 }
 
-                _tileLayers.Add(layerDefinitions[i].Iid, gameObject.AddComponent<TileLayer>().Init(layerDefinitions[i], layerDefinitions.Count - i));
+                _tileLayers.Add(layerDefinitions[i].Iid, gameObject.AddComponent<TileLayer>().Init(layerDefinitions[i], -i));
             }
         }
 
