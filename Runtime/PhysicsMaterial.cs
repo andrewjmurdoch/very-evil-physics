@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace VED
+namespace VED.Physics
 {
     [CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "VED/Physics/PhysicsMaterial", order = 0)]
     public class PhysicsMaterial : ScriptableObject

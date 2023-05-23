@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VED.Physics;
 using VED.Utilities;
 
-namespace VED
+namespace VED.Physics
 {
     public class SlideActor : PhysicsActor
     {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace VED
+namespace VED.Physics
 {
     [CreateAssetMenu(fileName = "PlayerActorSettings", menuName = "TKW/Player/PlayerActorSettings", order = 0)]
     public class PlayerActorSettings : ScriptableObject
