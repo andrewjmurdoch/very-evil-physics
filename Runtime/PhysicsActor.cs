@@ -10,6 +10,8 @@ namespace VED.Physics
         public static Action<PhysicsActor> Spawned;
         public static Action<PhysicsActor> Despawned;
 
+        public int Index { get; set; } = 0;
+
         public float Weight => _weight;
         [SerializeField] protected float _weight = 1f;
 

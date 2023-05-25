@@ -73,20 +73,17 @@ namespace VED.Physics
 
         private void RemoveActor(PhysicsActor actor)
         {
-            if (_iterator >= actor.Index) _iterator--;
-            _actors.Remove(actor);
+            if (_actors.Remove(actor) && _iterator >= actor.Index) _iterator--;
         }
 
         private void AddSolid(PhysicsSolid solid)
         {
             if (_solids.Contains(solid)) return;
-            solid.Index = _solids.Count;
             _solids.Add(solid);
         }
 
         private void RemoveSolid(PhysicsSolid solid)
         {
-            if (_iterator >= solid.Index) _iterator--;
             _solids.Remove(solid);
         }
 
