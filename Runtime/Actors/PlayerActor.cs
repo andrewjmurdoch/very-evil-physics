@@ -218,6 +218,10 @@ namespace VED.Physics
                 {
                     speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
                 }
+                else
+                {
+                    speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED + Mathf.Abs(_velocity.x)));
+                }
 
                 _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
                 return;
@@ -237,6 +241,10 @@ namespace VED.Physics
                 if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
                 {
                     speed = Mathf.Clamp(speed, 0, (maxSpeed - Mathf.Abs(_velocity.x)));
+                }
+                else
+                {
+                    speed = Mathf.Clamp(speed, 0, (maxSpeed + Mathf.Abs(_velocity.x)));
                 }
 
                 // move horizontally with air control value & jump peak multiplier
