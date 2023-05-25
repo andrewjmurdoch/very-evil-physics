@@ -575,12 +575,18 @@ namespace VED.Physics
         #region Move
         public override void FixedTick()
         {
+            TickNearby();
+            TickMoveable();
+            TickSliding();
+            TickVelocity(_velocity.x, _velocity.y);
+        }
+
+        protected virtual void TickSliding()
+        {
             _slidingUp = false;
             _slidingDown = false;
             _slidingLeft = false;
             _slidingRight = false;
-
-            base.FixedTick();
         }
 
         protected override bool MoveHorizontally(float sign, Action<List<PhysicsContact>> CollideHorizontally)

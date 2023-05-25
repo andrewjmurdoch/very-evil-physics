@@ -64,7 +64,7 @@ namespace VED.Physics
             base.Init();
 
             Spawned?.Invoke(this);
-            UpdateNearby();
+            TickNearby();
         }
 
         public override void Deinit()
@@ -78,6 +78,7 @@ namespace VED.Physics
 
         public virtual void FixedTick()
         {
+            TickNearby();
             TickMoveable();
             TickVelocity(_velocity.x, _velocity.y);
         }
@@ -101,7 +102,7 @@ namespace VED.Physics
             if (_immoveable) return;
             _immoveable = true;
 
-            UpdateNearby();
+            TickNearby();
 
             if (Math.Abs(_xRounded) > 0)
             {
@@ -135,7 +136,7 @@ namespace VED.Physics
             float iterations = 0;
             while (iterations < MAX_MOVEMENT_ITERATIONS && (Math.Abs(_xRounded) > 0 || Math.Abs(_yRounded) > 0))
             {
-                UpdateNearby();
+                TickNearby();
 
                 if (Math.Abs(_xRounded) > 0)
                 {
@@ -164,7 +165,7 @@ namespace VED.Physics
             _yRounded = 0;
         }
 
-        protected void UpdateNearby()
+        protected void TickNearby()
         {
             _nearby.Clear();
 
@@ -247,8 +248,6 @@ namespace VED.Physics
 
         protected void TickMoveable()
         {
-            UpdateNearby();
-
             MoveableHorizontally[ 1] = UpdateMoveableHorizontally( 1);
             MoveableHorizontally[-1] = UpdateMoveableHorizontally(-1);
             MoveableVertically  [ 1] = UpdateMoveableVertically  ( 1);

@@ -91,11 +91,14 @@ namespace VED.Physics
         #region Tick
         public override void FixedTick()
         {
-            TickGravity();
+            TickNearby();
+            TickMoveable();
+            TickSliding();
             TickGrounded();
+            TickGravity();
             TickFriction();
             TickInheritedMovement();
-            base.FixedTick();
+            TickVelocity(_velocity.x, _velocity.y);
         }
 
         public override void FixedSubTick()
