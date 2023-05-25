@@ -86,15 +86,17 @@ namespace VED.Physics
 
         public virtual void SubTickMove(Action<List<PhysicsContact>> CollideHorizontally = null, Action<List<PhysicsContact>> CollideVertically = null)
         {
-            if (_immoveable) return;
-            _immoveable = true;
-
             double x = _xRounded + _xRemainder;
             double y = _yRounded + _yRemainder;
             _xRounded = Math.Sign(x) * Math.Floor(Math.Abs(x));
             _yRounded = Math.Sign(y) * Math.Floor(Math.Abs(y));
             _xRemainder = x - _xRounded;
             _yRemainder = y - _yRounded;
+
+            if (Math.Abs(_xRounded) <= 0 && Math.Abs(_yRounded) <= 0) return;
+            
+            if (_immoveable) return;
+            _immoveable = true;
 
             UpdateNearby();
 
