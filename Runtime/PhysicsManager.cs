@@ -89,6 +89,13 @@ namespace VED.Physics
 
         public void FixedTick()
         {
+            // reindex actors
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                _actors[i].Index = i;
+            }
+
+            // initial tick
             int iterations = 0;
             for (_iterator = _actors.Count - 1; _iterator >= 0; _iterator--)
             {
@@ -97,6 +104,7 @@ namespace VED.Physics
                 iterations = Mathf.Max(iterations, Mathf.Max(Mathf.Abs(actor.X), Mathf.Abs(actor.Y)));
             }
 
+            // sub tick
             for (int i = 0; i < iterations; i++)
             {
                 for (_iterator = _actors.Count - 1; _iterator >= 0; _iterator--)
