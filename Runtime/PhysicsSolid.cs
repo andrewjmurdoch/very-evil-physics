@@ -34,6 +34,7 @@ namespace VED.Physics
             base.Deinit();
 
             _cell?.Solids.Remove(this);
+            _cell = null;
             Despawned?.Invoke(this);
         }
 

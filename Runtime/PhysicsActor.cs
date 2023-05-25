@@ -70,6 +70,7 @@ namespace VED.Physics
             base.Deinit();
 
             _cell?.Actors.Remove(this);
+            _cell = null;
             Despawned?.Invoke(this);
         }
 
