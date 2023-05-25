@@ -52,19 +52,8 @@ namespace VED.Physics
         #region Tick
         public override void FixedTick()
         {
-            TickMoveable();
-
-            _slidingUp = false;
-            _slidingDown = false;
-            _slidingLeft = false;
-            _slidingRight = false;
-
-            TickGravity();
-            TickGrounded();
             TickWallplant();
-            TickVelocity(_velocity.x, _velocity.y);
-            TickFriction();
-            TickInheritedMovement();
+            base.FixedTick();
         }
 
         public override void FixedSubTick()
