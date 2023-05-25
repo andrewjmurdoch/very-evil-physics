@@ -64,6 +64,12 @@ namespace VED.Physics
                 Detach(_attachments[i]);
             }
             _attachments.Clear();
+
+            for (int i = _nearby.Count - 1; i >= 0; i--)
+            {
+                _nearby[i].Nearby.Remove(this);
+            }
+            _nearby.Clear();
         }
 
         public void Attach(PhysicsContact attachment)
