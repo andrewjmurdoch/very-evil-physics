@@ -39,6 +39,8 @@ namespace VED.Physics
             }
         }
 
+        private int _iterator = 0;
+
         public void Init(PhysicsManagerSettings physicsManagerSettings, PhysicsMaterialMapper physicsMaterialMapper)
         {
             _physicsManagerSettings = physicsManagerSettings;
@@ -65,29 +67,33 @@ namespace VED.Physics
         private void AddActor(PhysicsActor actor)
         {
             if (_actors.Contains(actor)) return;
+            actor.Index = _actors.Count;
             _actors.Add(actor);
         }
 
         private void RemoveActor(PhysicsActor actor)
         {
+            if (_iterator >= actor.Index) _iterator--;
             _actors.Remove(actor);
         }
 
         private void AddSolid(PhysicsSolid solid)
         {
             if (_solids.Contains(solid)) return;
+            solid.Index = _solids.Count;
             _solids.Add(solid);
         }
 
         private void RemoveSolid(PhysicsSolid solid)
         {
+            if (_iterator >= solid.Index) _iterator--;
             _solids.Remove(solid);
         }
 
         public void FixedTick()
         {
             int iterations = 0;
-            for (int i = 0; i < _actors.Count; i++)
+            for (int i = _actors.Count - 1; i >= 0; i--)
             {
                 PhysicsActor actor = _actors[i];
                 actor.FixedTick();
@@ -96,9 +102,9 @@ namespace VED.Physics
 
             for (int i = 0; i < iterations; i++)
             {
-                for (int j = 0; j < _actors.Count; j++)
+                for (int _iterator = _actors.Count - 1; _iterator >= 0; _iterator--)
                 {
-                    _actors[j].FixedSubTick();
+                    _actors[_iterator].FixedSubTick();
                 }
             }
         }

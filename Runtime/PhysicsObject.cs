@@ -49,6 +49,8 @@ namespace VED.Physics
         public Transform Transform => _transform ??= transform;
         private Transform _transform = null;
 
+        public int Index { get; set; } = 0;
+
         public virtual void Init()
         {
             _physicsMaterial = _physicsMaterial == null ? PhysicsManager.Instance.DefaultPhysicsMaterial : _physicsMaterial;
