@@ -93,16 +93,16 @@ namespace VED.Physics
         public void FixedTick()
         {
             int iterations = 0;
-            for (int i = _actors.Count - 1; i >= 0; i--)
+            for (_iterator = _actors.Count - 1; _iterator >= 0; _iterator--)
             {
-                PhysicsActor actor = _actors[i];
+                PhysicsActor actor = _actors[_iterator];
                 actor.FixedTick();
                 iterations = Mathf.Max(iterations, Mathf.Max(Mathf.Abs(actor.X), Mathf.Abs(actor.Y)));
             }
 
             for (int i = 0; i < iterations; i++)
             {
-                for (int _iterator = _actors.Count - 1; _iterator >= 0; _iterator--)
+                for (_iterator = _actors.Count - 1; _iterator >= 0; _iterator--)
                 {
                     _actors[_iterator].FixedSubTick();
                 }
