@@ -213,14 +213,14 @@ namespace VED.Physics
             {
                 // move horizontally ([-1 -> 1] * clamp(speed, 0, max_velocity - velocity)) preventing addition past max velocity
 
-                float speed = _settings.MOVEMENT_SPEED;
+                float speed;
                 if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
                 {
                     speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
                 }
                 else
                 {
-                    speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED + Mathf.Abs(_velocity.x)));
+                    speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)));
                 }
 
                 _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
@@ -229,22 +229,29 @@ namespace VED.Physics
 
             if (!Grounded)
             {
-                float speed = _settings.AIR_MOVEMENT_SPEED;
-                float maxSpeed = _settings.AIR_MOVEMENT_MAX_SPEED;
+                float speed;
 
                 if (_velocity.y > -_settings.JUMP_PEAK_THRESHOLD && _velocity.y < _settings.JUMP_PEAK_THRESHOLD)
                 {
-                    speed = _settings.JUMP_PEAK_MOVEMENT_SPEED;
-                    maxSpeed = _settings.JUMP_PEAK_MOVEMENT_MAX_SPEED;
-                }
-
-                if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
-                {
-                    speed = Mathf.Clamp(speed, 0, (maxSpeed - Mathf.Abs(_velocity.x)));
+                    if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
+                    {
+                        speed = Mathf.Clamp(_settings.JUMP_PEAK_MOVEMENT_SPEED, 0, (_settings.JUMP_PEAK_MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
+                    }
+                    else
+                    {
+                        speed = Mathf.Clamp(_settings.JUMP_PEAK_MOVEMENT_SPEED, 0, (_settings.JUMP_PEAK_MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)));
+                    }
                 }
                 else
                 {
-                    speed = Mathf.Clamp(speed, 0, (maxSpeed + Mathf.Abs(_velocity.x)));
+                    if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
+                    {
+                        speed = Mathf.Clamp(_settings.AIR_MOVEMENT_SPEED, 0, (_settings.AIR_MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
+                    }
+                    else
+                    {
+                        speed = Mathf.Clamp(_settings.AIR_MOVEMENT_SPEED, 0, (_settings.AIR_MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)));
+                    }
                 }
 
                 // move horizontally with air control value & jump peak multiplier
