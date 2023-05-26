@@ -214,7 +214,7 @@ namespace VED.Physics
                 // move horizontally ([-1 -> 1] * clamp(speed, 0, max_velocity - velocity)) preventing addition past max velocity
 
                 float speed;
-                if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
+                if (Mathf.Abs(_velocity.x) > 0 && Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
                 {
                     speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
                 }
@@ -233,7 +233,7 @@ namespace VED.Physics
 
                 if (_velocity.y > -_settings.JUMP_PEAK_THRESHOLD && _velocity.y < _settings.JUMP_PEAK_THRESHOLD)
                 {
-                    if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
+                    if (Mathf.Abs(_velocity.x) > 0 && Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
                     {
                         speed = Mathf.Clamp(_settings.JUMP_PEAK_MOVEMENT_SPEED, 0, (_settings.JUMP_PEAK_MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
                     }
