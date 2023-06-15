@@ -123,16 +123,74 @@ namespace VED.Physics
             for (int i = 0; i < physicsObjects.Values.Count; i++)
             {
                 PhysicsObject physicsObject = physicsObjects.Values[i];
-                for (int j = 0; j < physicsObject.Colliders.Count; j++)
+                foreach (PhysicsCollider collider in physicsObject.Colliders)
                 {
-                    if (physicsEdge.Colliding(physicsObject.Colliders[j], out point))
+                    if (collider is PhysicsColliderCircle circle)
                     {
-                        hit = physicsObject;
-                        return true;
+                        if (physicsEdge.Colliding(circle, out point))
+                        {
+                            hit = physicsObject;
+                            return true;
+                        }
+                        continue;
+                    }
+
+                    if (collider is PhysicsColliderSquare square)
+                    {
+                        bool colliding = false;
+                        float min = float.MaxValue;
+
+                        void EdgeCollision(PhysicsEdge edge, out Vector2 point)
+                        {
+                            if (physicsEdge.Colliding(edge, out point))
+                            {
+                                colliding = true;
+                                min = Mathf.Min(min, (edge.MidPoint - origin).magnitude);
+                            }
+                        }
+
+                        EdgeCollision(square.AC, out point);
+                        EdgeCollision(square.CD, out point);
+                        EdgeCollision(square.AB, out point);
+                        EdgeCollision(square.BD, out point);
+
+                        if (colliding)
+                        {
+                            hit = physicsObject;
+                            return true; 
+                        }
+                        continue;
+                    }
+
+                    if (collider is PhysicsColliderTriangle triangle)
+                    {
+                        bool colliding = false;
+                        float min = float.MaxValue;
+
+                        void EdgeCollision(PhysicsEdge edge, out Vector2 point)
+                        {
+                            if (physicsEdge.Colliding(edge, out point))
+                            {
+                                colliding = true;
+                                min = Mathf.Min(min, (edge.MidPoint - origin).magnitude);
+                            }
+                        }
+
+                        EdgeCollision(triangle.AB, out point);
+                        EdgeCollision(triangle.BC, out point);
+                        EdgeCollision(triangle.CA, out point);
+
+                        if (colliding)
+                        {
+                            hit = physicsObject;
+                            return true;
+                        }
+                        continue;
                     }
                 }
             }
 
+            point = origin;
             return false;
         }
     }
