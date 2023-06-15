@@ -25,14 +25,15 @@ namespace VED.Physics
             _focused = focused;
         }
 
-        public bool Cast(out PhysicsObject hit)
+        public bool Cast(out PhysicsObject hit, out Vector2 point)
         {
-            return Cast(out hit, _origin, _direction, _magnitude, _ignored, _focused);
+            return Cast(out hit, out point, _origin, _direction, _magnitude, _ignored, _focused);
         }
 
-        public static bool Cast(out PhysicsObject hit, Vector2 origin, Vector2 direction, float magnitude, List<PhysicsObject> ignored = null, List<PhysicsObject> focused = null)
+        public static bool Cast(out PhysicsObject hit, out Vector2 point, Vector2 origin, Vector2 direction, float magnitude, List<PhysicsObject> ignored = null, List<PhysicsObject> focused = null)
         {
             hit = null;
+            point = origin;
 
             // create ray
             PhysicsEdge physicsEdge = new PhysicsEdge(origin, origin + (direction * magnitude));
@@ -124,13 +125,14 @@ namespace VED.Physics
                 PhysicsObject physicsObject = physicsObjects.Values[i];
                 for (int j = 0; j < physicsObject.Colliders.Count; j++)
                 {
-                    if (physicsEdge.Colliding(physicsObject.Colliders[j]))
+                    if (physicsEdge.Colliding(physicsObject.Colliders[j], out point))
                     {
                         hit = physicsObject;
                         return true;
                     }
                 }
             }
+
             return false;
         }
     }

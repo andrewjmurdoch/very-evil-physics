@@ -150,6 +150,18 @@ namespace VED.Physics
             return false;
         }
 
+        public override bool Colliding(PhysicsCollider other, out Vector2 point)
+        {
+            point = Position;
+            if (other == this) return false;
+
+            if (Interior(other.Centre)) return true;
+            if (AB.Colliding(other, out point)) return true;
+            if (BC.Colliding(other, out point)) return true;
+            if (CA.Colliding(other, out point)) return true;
+            return false;
+        }
+
         public override bool CollidingHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return false;

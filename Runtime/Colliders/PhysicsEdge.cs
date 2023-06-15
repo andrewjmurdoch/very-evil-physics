@@ -74,9 +74,46 @@ namespace VED.Physics
             return false;
         }
 
+        public bool Colliding(PhysicsCollider other, out Vector2 point)
+        {
+            point = MidPoint;
+
+            if (other is PhysicsColliderCircle circle)
+            {
+                float projection = Mathf.Clamp(Vector2.Dot(circle.Position - A, Vector.normalized), 0f, Vector.magnitude);
+                Vector2 closest = A + Vector.normalized * projection;
+                point = closest;
+
+                return (closest - circle.Position).magnitude <= circle.Radius + PhysicsCollider.COLLISION_ERROR_MARGIN;
+            }
+
+            if (other is PhysicsColliderSquare square)
+            {
+                if (Colliding(square.AC, out point)) return true;
+                if (Colliding(square.BD, out point)) return true;
+                if (Colliding(square.AB, out point)) return true;
+                if (Colliding(square.CD, out point)) return true;
+                return false;
+            }
+
+            if (other is PhysicsColliderTriangle triangle)
+            {
+                if (Colliding(triangle.AB, out point)) return true;
+                if (Colliding(triangle.BC, out point)) return true;
+                if (Colliding(triangle.CA, out point)) return true;
+                return false;
+            }
+
+            return false;
+        }
+
         public bool Colliding(PhysicsEdge other)
         {
-            Vector2 point;
+            return Intersection(other, out Vector2 point);
+        }
+
+        public bool Colliding(PhysicsEdge other, out Vector2 point)
+        {
             return Intersection(other, out point);
         }
 

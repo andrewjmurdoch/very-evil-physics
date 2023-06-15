@@ -57,6 +57,44 @@ namespace VED.Physics
             return false;
         }
 
+        public override bool Colliding(PhysicsCollider other, out Vector2 point)
+        {
+            point = Position;
+            if (other == this) return false;
+
+            if (other is PhysicsColliderCircle circle)
+            {
+                Vector2 difference = circle.Position - Position;
+                Vector2 direction = difference.normalized;
+                Vector2 localClosest = Position + (Radius * direction);
+                Vector2 remoteClosest = circle.Position - (circle.Radius * direction);
+                point = Vector2.Lerp(localClosest, remoteClosest, 0.5f);
+
+                return difference.magnitude <= (Radius + circle.Radius);
+            }
+
+            if (other is PhysicsColliderSquare square)
+            {
+                if (square.Interior(Position)) return true;
+                if (square.AC.Colliding(this, out point)) return true;
+                if (square.BD.Colliding(this, out point)) return true;
+                if (square.AB.Colliding(this, out point)) return true;
+                if (square.CD.Colliding(this, out point)) return true;
+                return false;
+            }
+
+            if (other is PhysicsColliderTriangle triangle)
+            {
+                if (triangle.Interior(Position)) return true;
+                if (triangle.AB.Colliding(this, out point)) return true;
+                if (triangle.BC.Colliding(this, out point)) return true;
+                if (triangle.CA.Colliding(this, out point)) return true;
+                return false;
+            }
+
+            return false;
+        }
+
         public override bool CollidingHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return false;

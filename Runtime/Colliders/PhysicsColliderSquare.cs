@@ -62,6 +62,37 @@ namespace VED.Physics
             return false;
         }
 
+        public override bool Colliding(PhysicsCollider other, out Vector2 point)
+        {
+            point = Position;
+            if (other == this) return false;
+
+            if (other is PhysicsColliderSquare square)
+            {
+                Vector2 difference = square.Position - Position;
+                Vector2 direction = difference.normalized;
+
+                Vector2 localClosest = Position;
+                localClosest += Vector2.right * Mathf.Sign(difference.x) * (Size.x / 2f);
+                localClosest += Vector2.up * Mathf.Sign(difference.y) * (Size.y / 2f);
+
+                Vector2 remoteClosest = square.Position;
+                remoteClosest += Vector2.right * -Mathf.Sign(difference.x) * (square.Size.x / 2f);
+                remoteClosest += Vector2.up * -Mathf.Sign(difference.y) * (square.Size.y / 2f);
+
+                point = Vector2.Lerp(localClosest, remoteClosest, 0.5f);
+
+                return Left < square.Right && Right > square.Left && Top > square.Bottom && Bottom < square.Top;
+            }
+
+            if (Interior(other.Centre)) return true;
+            if (AC.Colliding(other, out point)) return true;
+            if (BD.Colliding(other, out point)) return true;
+            if (AB.Colliding(other, out point)) return true;
+            if (CD.Colliding(other, out point)) return true;
+            return false;
+        }
+
         public override bool CollidingHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return false;

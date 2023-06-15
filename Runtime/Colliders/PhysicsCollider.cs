@@ -28,6 +28,7 @@ namespace VED.Physics
         public abstract float Bottom { get; }
         public abstract bool Interior(Vector2 point);
         public abstract bool Colliding(PhysicsCollider other);
+        public abstract bool Colliding(PhysicsCollider other, out Vector2 point);
         public abstract bool CollidingHorizontally(float sign, PhysicsCollider other);
         public abstract bool CollidingVertically(float sign, PhysicsCollider other);
         public abstract float OverlapHorizontally(float sign, PhysicsCollider other);
