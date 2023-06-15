@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -25,6 +26,21 @@ namespace VED.Physics
             return this;
         }
         
+        public void InitAsync(Level definition, int tileBatchSize, int entityBatchSize, Action<PhysicsTileLevel> callback)
+        {
+            _id = definition.Iid;
+            _size = new Vector2(definition.PxWid / Tilemaps.Consts.TILE_SIZE, definition.PxHei / Tilemaps.Consts.TILE_SIZE);
+
+            InitCells();
+            InitTileLayersAsync(definition, tileBatchSize, () =>
+            {
+                InitEntityLayersAsync(definition, entityBatchSize, () =>
+                {
+                    callback?.Invoke(this);
+                });
+            });
+        }
+
         public override void InitNeighbours(Level definition)
         {
             base.InitNeighbours(definition);
@@ -98,6 +114,9 @@ namespace VED.Physics
 
         protected override void InitTileLayers(Level definition)
         {
+            _tileLayers = new Dictionary<string, TileLayer>();
+            _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
+
             // find all layers which are not entity layers
             List<LayerInstance> layerDefinitions = new List<LayerInstance>();
             for (int i = 0; i < definition.LayerInstances.Count; i++)
@@ -108,9 +127,6 @@ namespace VED.Physics
                 }
             }
 
-            _tileLayers = new Dictionary<string, TileLayer>();
-            _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
-
             for (int i = 0; i < layerDefinitions.Count; i++)
             {
                 GameObject gameObject = new GameObject("TileLayer: " + layerDefinitions[i].Identifier);
@@ -119,12 +135,69 @@ namespace VED.Physics
 
                 if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTileLayer.KEY))
                 {
-                    PhysicsTileLayer collisionTilelayer = gameObject.AddComponent<PhysicsTileLayer>().Init(this, layerDefinitions[i], -i);
-                    _physicsTileLayers.Add(layerDefinitions[i].Iid, collisionTilelayer);
+                    PhysicsTileLayer physicsTilelayer = gameObject.AddComponent<PhysicsTileLayer>().Init(this, layerDefinitions[i], -i);
+                    _physicsTileLayers.Add(layerDefinitions[i].Iid, physicsTilelayer);
                     continue;
                 }
 
                 _tileLayers.Add(layerDefinitions[i].Iid, gameObject.AddComponent<TileLayer>().Init(layerDefinitions[i], -i));
+            }
+        }
+
+        protected override void InitTileLayersAsync(Level definition, int batchSize, Action callback)
+        {
+            _tileLayers = new Dictionary<string, TileLayer>();
+            _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
+
+            // find all layers which are not entity layers
+            List<LayerInstance> layerDefinitions = new List<LayerInstance>();
+            for (int i = 0; i < definition.LayerInstances.Count; i++)
+            {
+                if (definition.LayerInstances[i].Type != Consts.ENTITYLAYER_TYPE)
+                {
+                    layerDefinitions.Add(definition.LayerInstances[i]);
+                }
+            }
+
+            int count = layerDefinitions.Count;
+            if (count <= 0)
+            {
+                callback?.Invoke();
+                return;
+            }
+
+            for (int i = 0; i < layerDefinitions.Count; i++)
+            {
+                int index = i;
+
+                GameObject gameObject = new GameObject("TileLayer: " + layerDefinitions[i].Identifier);
+                gameObject.transform.SetParent(transform);
+                gameObject.transform.localPosition = Vector3.zero;
+
+                if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTileLayer.KEY))
+                {
+                    gameObject.AddComponent<PhysicsTileLayer>().InitAsync(this, layerDefinitions[i], -index, batchSize, (PhysicsTileLayer physicsTileLayer) =>
+                    {
+                        _physicsTileLayers.Add(layerDefinitions[index].Iid, physicsTileLayer);
+                        Join();
+                    });
+                    continue;
+                }
+
+                gameObject.AddComponent<TileLayer>().InitAsync(layerDefinitions[i], -index, batchSize, (TileLayer tileLayer) =>
+                {
+                    _tileLayers.Add(layerDefinitions[index].Iid, tileLayer);
+                    Join();
+                });
+            }
+
+            void Join()
+            {
+                if (count <= 0) return;
+                count--;
+                if (count > 0) return;
+
+                callback?.Invoke();
             }
         }
 

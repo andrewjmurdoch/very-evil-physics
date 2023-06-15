@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using VED.Tilemaps;
@@ -30,12 +31,22 @@ namespace VED.Physics
             if (definition.Type == Consts.INTLAYER_TYPE ) return InitIntlayer (tileLevel, definition, sortingOrder);
             return this;
         }
+        
+        public void InitAsync(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder, int batchSize, Action<PhysicsTileLayer> callback)
+        {
+            _id = definition.Iid;
+
+                 if (definition.Type == Consts.TILELAYER_TYPE) InitTilelayerAsync(tileLevel, definition, sortingOrder, batchSize, callback);
+            else if (definition.Type == Consts.AUTOLAYER_TYPE) InitAutolayerAsync(tileLevel, definition, sortingOrder, batchSize, callback);
+            else if (definition.Type == Consts.INTLAYER_TYPE ) InitIntlayerAsync (tileLevel, definition, sortingOrder, batchSize, callback);
+        }
 
         public void InitNeighbours(Dictionary<char, List<PhysicsTileLayer>> neighbourCollisionTilelayers)
         {
             _neighbourCollisionTilelayers = neighbourCollisionTilelayers;
         }
 
+        #region Synchronous
         protected PhysicsTileLayer InitTilelayer(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder)
         {
             if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
@@ -98,6 +109,144 @@ namespace VED.Physics
 
             return this;
         }
+        #endregion
+
+        #region Asynchronous
+        protected void InitTilelayerAsync(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder, int batchSize, Action<PhysicsTileLayer> callback)
+        {
+            if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
+            {
+                callback?.Invoke(this);
+                return;
+            }
+
+            _tiles = new PhysicsTile[definition.CWid, definition.CHei];
+
+            int count = definition.GridTiles.Count;
+            if (count <= 0)
+            {
+                callback?.Invoke(this);
+                return;
+            }
+            int batches = (count / batchSize) + Math.Clamp(count % batchSize, 0, 1);
+
+            void InstantiateTileAsync(int index)
+            {
+                PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.GridTiles[index].T];
+
+                int x = (int)definition.GridTiles[index].Px[0] / Consts.TILE_SIZE;
+                int y = (int)definition.GridTiles[index].Px[1] / Consts.TILE_SIZE;
+
+                InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
+            }
+
+            IEnumerator InstatiateTileBatchesAsync()
+            {
+                for (int i = 0; i < batches; i++)
+                {
+                    for (int j = 0; j < batchSize && (i * batchSize) + j < count; j++)
+                    {
+                        InstantiateTileAsync((i * batchSize) + j);
+                    }
+                    yield return null;
+                }
+
+                callback?.Invoke(this);
+            }
+
+            StartCoroutine(InstatiateTileBatchesAsync());
+        }
+
+        protected void InitAutolayerAsync(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder, int batchSize, Action<PhysicsTileLayer> callback)
+        {
+            if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
+            {
+                callback?.Invoke(this);
+                return;
+            }
+
+            _tiles = new PhysicsTile[definition.CWid, definition.CHei];
+
+            int count = definition.AutoLayerTiles.Count;
+            if (count <= 0)
+            {
+                callback?.Invoke(this);
+                return;
+            }
+            int batches = (count / batchSize) + Math.Clamp(count % batchSize, 0, 1);
+
+            void InstantiateTileAsync(int index)
+            {
+                PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.AutoLayerTiles[index].T];
+
+                int x = (int)definition.AutoLayerTiles[index].Px[0] / Consts.TILE_SIZE;
+                int y = (int)definition.AutoLayerTiles[index].Px[1] / Consts.TILE_SIZE;
+
+                InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
+            }
+
+            IEnumerator InstatiateTileBatchesAsync()
+            {
+                for (int i = 0; i < batches; i++)
+                {
+                    for (int j = 0; j < batchSize && (i * batchSize) + j < count; j++)
+                    {
+                        InstantiateTileAsync((i * batchSize) + j);
+                    }
+                    yield return null;
+                }
+
+                callback?.Invoke(this);
+            }
+
+            StartCoroutine(InstatiateTileBatchesAsync());
+        }
+
+        protected void InitIntlayerAsync(PhysicsTileLevel tileLevel, LayerInstance definition, int sortingOrder, int batchSize, Action<PhysicsTileLayer> callback)
+        {
+            if (!PhysicsTilesetManager.Instance.Tilesets.TryGetValue((int)definition.TilesetDefUid, out PhysicsTileset tileset))
+            {
+                callback?.Invoke(this);
+                return;
+            }
+
+            _tiles = new PhysicsTile[definition.CWid, definition.CHei];
+
+            int count = definition.AutoLayerTiles.Count;
+            if (count <= 0)
+            {
+                callback?.Invoke(this);
+                return;
+            }
+            int batches = (count / batchSize) + Math.Clamp(count % batchSize, 0, 1);
+
+            void InstantiateTileAsync(int index)
+            {
+                PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.AutoLayerTiles[index].T];
+
+                int x = (int)definition.AutoLayerTiles[index].Px[0] / Consts.TILE_SIZE;
+                int y = (int)definition.AutoLayerTiles[index].Px[1] / Consts.TILE_SIZE;
+
+                InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
+            }
+
+            IEnumerator InstatiateTileBatchesAsync()
+            {
+                for (int i = 0; i < batches; i++)
+                {
+                    for (int j = 0; j < batchSize && (i * batchSize) + j < count; j++)
+                    {
+                        InstantiateTileAsync((i * batchSize) + j);
+                    }
+                    yield return null;
+                }
+
+                callback?.Invoke(this);
+            }
+
+            StartCoroutine(InstatiateTileBatchesAsync());
+        }
+        #endregion
 
         protected PhysicsTile InitTile(PhysicsTileLevel tileLevel, PhysicsTileset.PhysicsTile tilesetTile, int x, int y, int sortingOrder)
         {
