@@ -140,19 +140,26 @@ namespace VED.Physics
                         bool colliding = false;
                         float min = float.MaxValue;
 
-                        void EdgeCollision(PhysicsEdge edge, out Vector2 point)
+                        bool EdgeCollision(PhysicsEdge edge, out Vector2 point)
                         {
                             if (physicsEdge.Colliding(edge, out point))
                             {
                                 colliding = true;
-                                min = Mathf.Min(min, (edge.MidPoint - origin).magnitude);
+                                float magnitude = (point - point).magnitude;
+
+                                if (min < magnitude) return false;
+
+                                min = magnitude;
+                                return true;
                             }
+                            return false;
                         }
 
-                        EdgeCollision(square.AC, out point);
-                        EdgeCollision(square.CD, out point);
-                        EdgeCollision(square.AB, out point);
-                        EdgeCollision(square.BD, out point);
+                        Vector2 edgePoint;
+                        if (EdgeCollision(square.AC, out edgePoint)) point = edgePoint;
+                        if (EdgeCollision(square.CD, out edgePoint)) point = edgePoint;
+                        if (EdgeCollision(square.AB, out edgePoint)) point = edgePoint;
+                        if (EdgeCollision(square.BD, out edgePoint)) point = edgePoint;
 
                         if (colliding)
                         {
@@ -167,18 +174,25 @@ namespace VED.Physics
                         bool colliding = false;
                         float min = float.MaxValue;
 
-                        void EdgeCollision(PhysicsEdge edge, out Vector2 point)
+                        bool EdgeCollision(PhysicsEdge edge, out Vector2 point)
                         {
                             if (physicsEdge.Colliding(edge, out point))
                             {
                                 colliding = true;
-                                min = Mathf.Min(min, (edge.MidPoint - origin).magnitude);
+                                float magnitude = (point - point).magnitude;
+
+                                if (min < magnitude) return false;
+
+                                min = magnitude;
+                                return true;
                             }
+                            return false;
                         }
 
-                        EdgeCollision(triangle.AB, out point);
-                        EdgeCollision(triangle.BC, out point);
-                        EdgeCollision(triangle.CA, out point);
+                        Vector2 edgePoint;
+                        if (EdgeCollision(triangle.AB, out edgePoint)) point = edgePoint;
+                        if (EdgeCollision(triangle.BC, out edgePoint)) point = edgePoint;
+                        if (EdgeCollision(triangle.CA, out edgePoint)) point = edgePoint;
 
                         if (colliding)
                         {
