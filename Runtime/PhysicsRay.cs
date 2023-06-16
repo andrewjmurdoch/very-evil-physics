@@ -145,7 +145,7 @@ namespace VED.Physics
                             if (physicsEdge.Colliding(edge, out point))
                             {
                                 colliding = true;
-                                float magnitude = (point - point).magnitude;
+                                float magnitude = (point - origin).magnitude;
 
                                 if (min < magnitude) return false;
 
@@ -179,7 +179,7 @@ namespace VED.Physics
                             if (physicsEdge.Colliding(edge, out point))
                             {
                                 colliding = true;
-                                float magnitude = (point - point).magnitude;
+                                float magnitude = (point - origin).magnitude;
 
                                 if (min < magnitude) return false;
 
