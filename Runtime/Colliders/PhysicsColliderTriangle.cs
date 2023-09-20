@@ -42,9 +42,9 @@ namespace VED.Physics
             return new PhysicsEdge(Vector2.zero, Vector2.zero);
         }
 
-        public override float Left => Mathf.Min(A.x, Mathf.Min(B.x, C.x));
-        public override float Right => Mathf.Max(A.x, Mathf.Max(B.x, C.x));
-        public override float Top => Mathf.Max(A.y, Mathf.Max(B.y, C.y));
+        public override float Left   => Mathf.Min(A.x, Mathf.Min(B.x, C.x));
+        public override float Right  => Mathf.Max(A.x, Mathf.Max(B.x, C.x));
+        public override float Top    => Mathf.Max(A.y, Mathf.Max(B.y, C.y));
         public override float Bottom => Mathf.Min(A.y, Mathf.Min(B.y, C.y));
 
         public Vector2 LeftPoint
@@ -142,6 +142,10 @@ namespace VED.Physics
         public override bool Colliding(PhysicsCollider other)
         {
             if (other == this) return false;
+            if (!( Left   < other.Right
+                && Right  > other.Left
+                && Top    > other.Bottom
+                && Bottom < other.Top)) return false;
 
             if (Interior(other.Centre)) return true;
             if (AB.Colliding(other)) return true;
@@ -154,6 +158,10 @@ namespace VED.Physics
         {
             point = Position;
             if (other == this) return false;
+            if (!( Left   < other.Right
+                && Right  > other.Left
+                && Top    > other.Bottom
+                && Bottom < other.Top)) return false;
 
             if (Interior(other.Centre)) return true;
             if (AB.Colliding(other, out point)) return true;
@@ -165,6 +173,10 @@ namespace VED.Physics
         public override bool CollidingHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
+            if (!( Left   < other.Right
+                && Right  > other.Left
+                && Top    > other.Bottom
+                && Bottom < other.Top)) return false;
 
             List<PhysicsEdge> edges = sign > 0 ? RightEdges : LeftEdges;
             foreach (PhysicsEdge edge in edges)
@@ -177,6 +189,10 @@ namespace VED.Physics
         public override bool CollidingVertically(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
+            if (!( Left   < other.Right
+                && Right  > other.Left
+                && Top    > other.Bottom
+                && Bottom < other.Top)) return false;
 
             List<PhysicsEdge> edges = sign > 0 ? TopEdges : BottomEdges;
             foreach (PhysicsEdge edge in edges)
@@ -487,7 +503,7 @@ namespace VED.Physics
 
                 if (remoteInterior)
                 {
-                    return triangle.OverlapHorizontally(-sign, this);
+                    return triangle.OverlapVertically(-sign, this);
                 }
 
                 return NoInterior();

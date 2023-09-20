@@ -9,7 +9,8 @@ namespace VED.Physics
 
         private const float COLLISION_ERROR_MARGIN_UP = 0.1f;
         private const float COLLISION_ERROR_MARGIN_DOWN = 0.01f;
-        private const float COLLISION_ERROR_MARGIN_HORIZONTAL = 0.01f;
+        private const float COLLISION_ERROR_MARGIN_LEFT = 0.01f;
+        private const float COLLISION_ERROR_MARGIN_RIGHT = 0.01f;
 
         // vertices
         // Z configuration [A: top left] [B: top right] [C: bottom left] [D: bottom right]
@@ -48,11 +49,12 @@ namespace VED.Physics
         public override bool Colliding(PhysicsCollider other)
         {
             if (other == this) return false;
+            if (!( Left   < other.Right 
+                && Right  > other.Left 
+                && Top    > other.Bottom 
+                && Bottom < other.Top)) return false;
 
-            if (other is PhysicsColliderSquare square)
-            {
-                return Left < square.Right && Right > square.Left && Top > square.Bottom && Bottom < square.Top;
-            }
+            if (other is PhysicsColliderSquare square) return true;
 
             if (Interior(other.Centre)) return true;
             if (AC.Colliding(other)) return true;
@@ -66,6 +68,10 @@ namespace VED.Physics
         {
             point = Position;
             if (other == this) return false;
+            if (!( Left   < other.Right
+                && Right  > other.Left
+                && Top    > other.Bottom
+                && Bottom < other.Top)) return false;
 
             if (other is PhysicsColliderSquare square)
             {
@@ -82,7 +88,7 @@ namespace VED.Physics
 
                 point = Vector2.Lerp(localClosest, remoteClosest, 0.5f);
 
-                return Left < square.Right && Right > square.Left && Top > square.Bottom && Bottom < square.Top;
+                return true;
             }
 
             if (Interior(other.Centre)) return true;
@@ -97,50 +103,43 @@ namespace VED.Physics
         {
             if (other == this) return false;
 
-            PhysicsEdge edge = sign > 0 ? BD : AC;
-
-            if (other is PhysicsColliderSquare square)
+            PhysicsEdge edge = BD;
+            float margin = COLLISION_ERROR_MARGIN_RIGHT;
+            
+            if (sign < 0)
             {
-                // AABB collision detection
-                return edge.Left   < square.Right
-                    && edge.Right  > square.Left 
-                    && edge.Top    > square.Bottom + COLLISION_ERROR_MARGIN_HORIZONTAL
-                    && edge.Bottom < square.Top    - COLLISION_ERROR_MARGIN_HORIZONTAL;
+                edge = AC;
+                margin = COLLISION_ERROR_MARGIN_LEFT;
             }
 
-            return edge.Colliding(other);
+            if (!( edge.Left   < other.Right
+                && edge.Right  > other.Left
+                && edge.Top    > other.Bottom + margin
+                && edge.Bottom < other.Top    - margin)) return false;
+
+            return (other is PhysicsColliderSquare) || edge.Colliding(other);
         }
 
         public override bool CollidingVertically(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
 
+            PhysicsEdge edge = CD;
+            float margin = COLLISION_ERROR_MARGIN_DOWN;
+
             if (sign > 0)
             {
-                if (other is PhysicsColliderSquare square)
-                {
-                    // AABB collision detection
-                    return AB.Left   < square.Right  - COLLISION_ERROR_MARGIN_UP
-                        && AB.Right  > square.Left   + COLLISION_ERROR_MARGIN_UP
-                        && AB.Top    > square.Bottom
-                        && AB.Bottom < square.Top;
-                }
-
-                return AB.Colliding(other);
+                edge = AB;
+                margin = COLLISION_ERROR_MARGIN_UP;
             }
-            else
-            {
-                if (other is PhysicsColliderSquare square)
-                {
-                    // AABB collision detection
-                    return CD.Left   < square.Right  - COLLISION_ERROR_MARGIN_DOWN
-                        && CD.Right  > square.Left   + COLLISION_ERROR_MARGIN_DOWN
-                        && CD.Top    > square.Bottom
-                        && CD.Bottom < square.Top;
-                }
 
-                return CD.Colliding(other);
-            }
+            if (!( edge.Left   < other.Right - margin
+                && edge.Right  > other.Left  + margin
+                && edge.Top    > other.Bottom 
+                && edge.Bottom < other.Top)) return false;
+
+
+            return (other is PhysicsColliderSquare) || edge.Colliding(other);
         }
 
         public override float OverlapHorizontally(float sign, PhysicsCollider other)
