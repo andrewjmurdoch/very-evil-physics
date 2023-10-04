@@ -2,7 +2,7 @@
 
 namespace VED.Physics
 {
-    [CreateAssetMenu(fileName = "PlayerActorSettings", menuName = "TKW/Player/PlayerActorSettings", order = 0)]
+    [CreateAssetMenu(fileName = "PlayerActorSettings", menuName = "VED/Physics/PlayerActorSettings", order = 0)]
     public class PlayerActorSettings : ScriptableObject
     {
         public float COYOTE_TIME;
