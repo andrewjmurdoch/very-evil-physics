@@ -305,7 +305,7 @@ namespace VED.Physics
 
             // update radius
             EditorGUI.BeginChangeCheck();
-            Vector2 radiusPosition = Handles.FreeMoveHandle(collider.Position + _direction * collider.Radius, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 radiusPosition = Handles.FreeMoveHandle(collider.Position + _direction * collider.Radius, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(collider, "Changed Radius");
@@ -316,7 +316,7 @@ namespace VED.Physics
 
             // update centre
             EditorGUI.BeginChangeCheck();
-            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(collider, "Changed Centre");
@@ -336,8 +336,8 @@ namespace VED.Physics
 
             // update size
             EditorGUI.BeginChangeCheck();
-            Vector2 h = Handles.FreeMoveHandle(collider.Position + (Vector2.right * (_hDirection * (collider.Size.x / 2f))), Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
-            Vector2 v = Handles.FreeMoveHandle(collider.Position + (Vector2.up * (_vDirection * (collider.Size.y / 2f))), Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 h = Handles.FreeMoveHandle(collider.Position + (Vector2.right * (_hDirection * (collider.Size.x / 2f))), SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 v = Handles.FreeMoveHandle(collider.Position + (Vector2.up * (_vDirection * (collider.Size.y / 2f))), SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(collider, "Changed Size");
@@ -349,7 +349,7 @@ namespace VED.Physics
 
             // update centre
             EditorGUI.BeginChangeCheck();
-            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(collider, "Changed Centre");
@@ -368,7 +368,7 @@ namespace VED.Physics
 
             // update centre
             EditorGUI.BeginChangeCheck();
-            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 centrePosition = Handles.FreeMoveHandle(collider.Position, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(collider, "Changed Centre");
@@ -378,9 +378,9 @@ namespace VED.Physics
 
             // update points A, B, C
             EditorGUI.BeginChangeCheck();
-            Vector2 A = Handles.FreeMoveHandle(collider.A, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
-            Vector2 B = Handles.FreeMoveHandle(collider.B, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
-            Vector2 C = Handles.FreeMoveHandle(collider.C, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 A = Handles.FreeMoveHandle(collider.A, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 B = Handles.FreeMoveHandle(collider.B, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 C = Handles.FreeMoveHandle(collider.C, SCALE, Vector2.zero, Handles.CubeHandleCap);
 
             if (EditorGUI.EndChangeCheck())
             {

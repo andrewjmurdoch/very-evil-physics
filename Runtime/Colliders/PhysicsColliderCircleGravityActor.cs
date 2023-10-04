@@ -150,7 +150,7 @@ namespace VED.Physics
 
             // update radius
             EditorGUI.BeginChangeCheck();
-            Vector2 radiusPosition = Handles.FreeMoveHandle(c.Position + _direction * c.Radius, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 radiusPosition = Handles.FreeMoveHandle(c.Position + _direction * c.Radius, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(c, "Changed Radius");
@@ -161,7 +161,7 @@ namespace VED.Physics
 
             // update centre
             EditorGUI.BeginChangeCheck();
-            Vector2 centrePosition = Handles.FreeMoveHandle(c.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 centrePosition = Handles.FreeMoveHandle(c.Position, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(c, "Changed Centre");

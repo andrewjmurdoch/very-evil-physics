@@ -224,8 +224,8 @@ namespace VED.Physics
 
             // update size
             EditorGUI.BeginChangeCheck();
-            Vector2 h = Handles.FreeMoveHandle(s.Position + (Vector2.right * (_hDirection * (s.Size.x / 2f))), Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
-            Vector2 v = Handles.FreeMoveHandle(s.Position + (Vector2.up * (_vDirection * (s.Size.y / 2f))), Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 h = Handles.FreeMoveHandle(s.Position + (Vector2.right * (_hDirection * (s.Size.x / 2f))), SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 v = Handles.FreeMoveHandle(s.Position + (Vector2.up * (_vDirection * (s.Size.y / 2f))), SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(s, "Changed Size");
@@ -237,7 +237,7 @@ namespace VED.Physics
 
             // update centre
             EditorGUI.BeginChangeCheck();
-            Vector2 centrePosition = Handles.FreeMoveHandle(s.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 centrePosition = Handles.FreeMoveHandle(s.Position, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(s, "Changed Centre");

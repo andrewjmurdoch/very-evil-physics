@@ -542,7 +542,7 @@ namespace VED.Physics
 
             // update centre
             EditorGUI.BeginChangeCheck();
-            Vector2 centrePosition = Handles.FreeMoveHandle(t.Position, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 centrePosition = Handles.FreeMoveHandle(t.Position, SCALE, Vector2.zero, Handles.CubeHandleCap);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(t, "Changed Centre");
@@ -552,9 +552,9 @@ namespace VED.Physics
 
             // update points A, B, C
             EditorGUI.BeginChangeCheck();
-            Vector2 A = Handles.FreeMoveHandle(t.A, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
-            Vector2 B = Handles.FreeMoveHandle(t.B, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
-            Vector2 C = Handles.FreeMoveHandle(t.C, Quaternion.identity, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 A = Handles.FreeMoveHandle(t.A, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 B = Handles.FreeMoveHandle(t.B, SCALE, Vector2.zero, Handles.CubeHandleCap);
+            Vector2 C = Handles.FreeMoveHandle(t.C, SCALE, Vector2.zero, Handles.CubeHandleCap);
 
             if (EditorGUI.EndChangeCheck())
             {
