@@ -45,8 +45,8 @@ namespace VED.Physics
 
         [SerializeField] protected SlideActorSettings _slideSettings = new SlideActorSettings();
 
-        public float MAX_CONVERSION_THRESHOLD = 6.0f; // the max value to consider when converting momentum between directions
-        public float MIN_CONVERSION_VALUE     = 0.5f; // the min conversion rate between directions during a slide
+        private const float MAX_CONVERSION_THRESHOLD = 6.0f; // the max value to consider when converting momentum between directions
+        private const float MIN_CONVERSION_VALUE     = 0.5f; // the min conversion rate between directions during a slide
 
         public bool SlidingUp => _slidingUp;
         [SerializeField, ReadOnly] protected bool _slidingUp = false;
