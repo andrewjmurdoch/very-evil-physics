@@ -18,6 +18,8 @@ namespace VED.Physics
         public float Strength => _strength;
         [SerializeField] protected float _strength = 1f;
 
+        public bool Pushable => _pushable;
+        [SerializeField] protected bool _pushable = true;
         [SerializeField] protected bool _canPush = true;
 
         public Dictionary<float, bool> MoveableHorizontally = new Dictionary<float, bool>()
@@ -369,17 +371,23 @@ namespace VED.Physics
 
         protected bool PushActorsHorizontally(List<PhysicsContact> actors, float sign, Action<List<PhysicsContact>> CollideHorizontally)
         {
-            // push actors
+            // validate
             foreach (PhysicsContact contact in actors)
             {
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
 
                 // if actor is not moveable, collide
-                if (!actor.MoveableHorizontally[sign])
+                if (!actor.MoveableHorizontally[sign] || !actor.Pushable)
                 {
                     CollideHorizontally?.Invoke(actors);
                     return false;
                 }
+            }
+
+            // push actors
+            foreach (PhysicsContact contact in actors)
+            {
+                PhysicsActor actor = contact.RemoteObject as PhysicsActor;
 
                 // transfer velocity
                 float weight = actor.GetTotalWeight();
@@ -395,17 +403,23 @@ namespace VED.Physics
 
         protected bool PushActorsVertically(List<PhysicsContact> actors, float sign, Action<List<PhysicsContact>> CollideVertically)
         {
-            // push actors
+            // validate
             foreach (PhysicsContact contact in actors)
             {
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
 
                 // if actor is not moveable, collide
-                if (!actor.MoveableVertically[sign])
+                if (!actor.MoveableVertically[sign] || !actor.Pushable)
                 {
                     CollideVertically?.Invoke(actors);
                     return false;
                 }
+            }
+
+            // push actors
+            foreach (PhysicsContact contact in actors)
+            {
+                PhysicsActor actor = contact.RemoteObject as PhysicsActor;
 
                 // transfer velocity
                 float weight = actor.GetTotalWeight();
