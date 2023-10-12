@@ -65,10 +65,6 @@ namespace VED.Physics
         public override bool CollidingVertically(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
 
             if (other is PhysicsColliderCircle circle)
             {
