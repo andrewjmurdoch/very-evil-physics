@@ -12,8 +12,10 @@ namespace VED.Physics
         public Dictionary<long, PhysicsTileset> Tilesets => _tilesets;
         private Dictionary<long, PhysicsTileset> _tilesets = new Dictionary<long, PhysicsTileset>();
 
-        public void Init(TilesetMapper tilesetMapper, List<TilesetDefinition> definitions)
+        public void Init(TilesetManagerSettings tilesetManagerSettings, TilesetMapper tilesetMapper, List<TilesetDefinition> definitions)
         {
+            TilesetManager.Instance.Init(tilesetManagerSettings, tilesetMapper, definitions);
+
             _tilesetMapper = tilesetMapper;
 
             _tilesets = new Dictionary<long, PhysicsTileset>();
@@ -21,13 +23,12 @@ namespace VED.Physics
             {
                 if (tilesetDefinition.Tags.Contains(PhysicsTileLayer.KEY))
                 {
-                    _tilesets.Add(tilesetDefinition.Uid, new PhysicsTileset().Init(tilesetDefinition));
-                    continue;
+                    PhysicsTileset tileset = new PhysicsTileset().Init(tilesetDefinition);
+                    if (tileset == null) continue;
+
+                    _tilesets.Add(tilesetDefinition.Uid, tileset);
                 }
             }
-
-            TilesetManager.Instance.Init(tilesetMapper, definitions);
         }
     }
-
 }

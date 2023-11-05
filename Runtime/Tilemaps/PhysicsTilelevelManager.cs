@@ -21,7 +21,7 @@ namespace VED.Physics
             for (int i = 0; i < definitions.Count; i++)
             {
                 GameObject gameObject = new GameObject("TileLevel: " + definitions[i].Identifier);
-                gameObject.transform.localPosition = new Vector2(definitions[i].WorldX / Consts.TILE_SIZE, -definitions[i].WorldY / Consts.TILE_SIZE);
+                gameObject.transform.localPosition = new Vector2(definitions[i].WorldX / TilesetManager.TileSize, -definitions[i].WorldY / TilesetManager.TileSize);
 
                 _tileLevels.Add(definitions[i].Iid, gameObject.AddComponent<PhysicsTileLevel>().Init(definitions[i]));
             }
@@ -50,7 +50,7 @@ namespace VED.Physics
                 int index = i;
 
                 GameObject gameObject = new GameObject("TileLevel: " + definitions[i].Identifier);
-                gameObject.transform.localPosition = new Vector2(definitions[i].WorldX / Consts.TILE_SIZE, -definitions[i].WorldY / Consts.TILE_SIZE);
+                gameObject.transform.localPosition = new Vector2(definitions[i].WorldX / TilesetManager.TileSize, -definitions[i].WorldY / TilesetManager.TileSize);
 
                 gameObject.AddComponent<PhysicsTileLevel>().InitAsync(definitions[i], tileBatchSize, entityBatchSize, (PhysicsTileLevel tileLevel) =>
                 {

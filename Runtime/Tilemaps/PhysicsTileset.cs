@@ -13,8 +13,10 @@ namespace VED.Physics
 
         public new PhysicsTileset Init(TilesetDefinition definition)
         {
+            if (definition.RelPath == null) return null;
+
             // get size of tileset
-            int size = (int)((definition.PxWid / Consts.TILE_SIZE) * (definition.PxHei / Consts.TILE_SIZE));
+            int size = (int)((definition.PxWid / TilesetManager.TileSize) * (definition.PxHei / TilesetManager.TileSize));
             _tiles = new PhysicsTile[size];
 
             // get tileset
@@ -23,18 +25,20 @@ namespace VED.Physics
             string name = definition.RelPath.Substring(start, end - start);
             SpriteAtlas spriteAtlas = PhysicsTilesetManager.Instance.TilesetMapper[name];
 
+            if (spriteAtlas == null) return null;
+
             // distinguish between collider enums + material enums
             List<EnumTagValue> colliderEnumTagValues = new List<EnumTagValue>();
             List<EnumTagValue> materialEnumTagValues = new List<EnumTagValue>();
             for (int i = 0; i < definition.EnumTags.Count; i++)
             {
-                if (definition.EnumTags[i].EnumValueId.Contains("COL_"))
+                if (definition.EnumTags[i].EnumValueId.Contains(Consts.LDTK_ENUM_COLLIDER))
                 {
                     colliderEnumTagValues.Add(definition.EnumTags[i]);
                     continue;
                 }
 
-                if (definition.EnumTags[i].EnumValueId.Contains("MAT_"))
+                if (definition.EnumTags[i].EnumValueId.Contains(Consts.LDTK_ENUM_MATERIAL))
                 {
                     materialEnumTagValues.Add(definition.EnumTags[i]);
                 }

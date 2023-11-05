@@ -17,7 +17,7 @@ namespace VED.Physics
         public new PhysicsTileLevel Init(Level definition)
         {
             _id = definition.Iid;
-            _size = new Vector2(definition.PxWid / Tilemaps.Consts.TILE_SIZE, definition.PxHei / Tilemaps.Consts.TILE_SIZE);
+            _size = new Vector2(definition.PxWid / TilesetManager.TileSize, definition.PxHei / TilesetManager.TileSize);
 
             InitCells();
             InitTileLayers(definition);
@@ -29,7 +29,7 @@ namespace VED.Physics
         public void InitAsync(Level definition, int tileBatchSize, int entityBatchSize, Action<PhysicsTileLevel> callback)
         {
             _id = definition.Iid;
-            _size = new Vector2(definition.PxWid / Tilemaps.Consts.TILE_SIZE, definition.PxHei / Tilemaps.Consts.TILE_SIZE);
+            _size = new Vector2(definition.PxWid / TilesetManager.TileSize, definition.PxHei / TilesetManager.TileSize);
 
             InitCells();
             InitTileLayersAsync(definition, tileBatchSize, () =>
@@ -121,7 +121,7 @@ namespace VED.Physics
             List<LayerInstance> layerDefinitions = new List<LayerInstance>();
             for (int i = 0; i < definition.LayerInstances.Count; i++)
             {
-                if (definition.LayerInstances[i].Type != Consts.ENTITYLAYER_TYPE)
+                if (definition.LayerInstances[i].Type != Tilemaps.Consts.ENTITYLAYER_TYPE)
                 {
                     layerDefinitions.Add(definition.LayerInstances[i]);
                 }
@@ -153,7 +153,7 @@ namespace VED.Physics
             List<LayerInstance> layerDefinitions = new List<LayerInstance>();
             for (int i = 0; i < definition.LayerInstances.Count; i++)
             {
-                if (definition.LayerInstances[i].Type != Consts.ENTITYLAYER_TYPE)
+                if (definition.LayerInstances[i].Type != Tilemaps.Consts.ENTITYLAYER_TYPE)
                 {
                     layerDefinitions.Add(definition.LayerInstances[i]);
                 }

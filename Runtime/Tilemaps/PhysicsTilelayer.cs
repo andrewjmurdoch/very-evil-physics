@@ -26,9 +26,9 @@ namespace VED.Physics
         {
             _id = definition.Iid;
 
-            if (definition.Type == Consts.TILELAYER_TYPE) return InitTilelayer(tileLevel, definition, sortingOrder);
-            if (definition.Type == Consts.AUTOLAYER_TYPE) return InitAutolayer(tileLevel, definition, sortingOrder);
-            if (definition.Type == Consts.INTLAYER_TYPE ) return InitIntlayer (tileLevel, definition, sortingOrder);
+            if (definition.Type == Tilemaps.Consts.TILELAYER_TYPE) return InitTilelayer(tileLevel, definition, sortingOrder);
+            if (definition.Type == Tilemaps.Consts.AUTOLAYER_TYPE) return InitAutolayer(tileLevel, definition, sortingOrder);
+            if (definition.Type == Tilemaps.Consts.INTLAYER_TYPE ) return InitIntlayer (tileLevel, definition, sortingOrder);
             return this;
         }
         
@@ -36,9 +36,9 @@ namespace VED.Physics
         {
             _id = definition.Iid;
 
-                 if (definition.Type == Consts.TILELAYER_TYPE) InitTilelayerAsync(tileLevel, definition, sortingOrder, batchSize, callback);
-            else if (definition.Type == Consts.AUTOLAYER_TYPE) InitAutolayerAsync(tileLevel, definition, sortingOrder, batchSize, callback);
-            else if (definition.Type == Consts.INTLAYER_TYPE ) InitIntlayerAsync (tileLevel, definition, sortingOrder, batchSize, callback);
+                 if (definition.Type == Tilemaps.Consts.TILELAYER_TYPE) InitTilelayerAsync(tileLevel, definition, sortingOrder, batchSize, callback);
+            else if (definition.Type == Tilemaps.Consts.AUTOLAYER_TYPE) InitAutolayerAsync(tileLevel, definition, sortingOrder, batchSize, callback);
+            else if (definition.Type == Tilemaps.Consts.INTLAYER_TYPE ) InitIntlayerAsync (tileLevel, definition, sortingOrder, batchSize, callback);
         }
 
         public void InitNeighbours(Dictionary<char, List<PhysicsTileLayer>> neighbourCollisionTilelayers)
@@ -59,8 +59,8 @@ namespace VED.Physics
             {
                 PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.GridTiles[i].T];
 
-                int x = (int)definition.GridTiles[i].Px[0] / Consts.TILE_SIZE;
-                int y = (int)definition.GridTiles[i].Px[1] / Consts.TILE_SIZE;
+                int x = (int)definition.GridTiles[i].Px[0] / TilesetManager.TileSize;
+                int y = (int)definition.GridTiles[i].Px[1] / TilesetManager.TileSize;
 
                 InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
@@ -80,8 +80,8 @@ namespace VED.Physics
             {
                 PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.AutoLayerTiles[i].T];
 
-                int x = (int)definition.AutoLayerTiles[i].Px[0] / Consts.TILE_SIZE;
-                int y = (int)definition.AutoLayerTiles[i].Px[1] / Consts.TILE_SIZE;
+                int x = (int)definition.AutoLayerTiles[i].Px[0] / TilesetManager.TileSize;
+                int y = (int)definition.AutoLayerTiles[i].Px[1] / TilesetManager.TileSize;
 
                 InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
@@ -101,8 +101,8 @@ namespace VED.Physics
             {
                 PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.AutoLayerTiles[i].T];
 
-                int x = (int)definition.AutoLayerTiles[i].Px[0] / Consts.TILE_SIZE;
-                int y = (int)definition.AutoLayerTiles[i].Px[1] / Consts.TILE_SIZE;
+                int x = (int)definition.AutoLayerTiles[i].Px[0] / TilesetManager.TileSize;
+                int y = (int)definition.AutoLayerTiles[i].Px[1] / TilesetManager.TileSize;
 
                 InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
@@ -134,8 +134,8 @@ namespace VED.Physics
             {
                 PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.GridTiles[index].T];
 
-                int x = (int)definition.GridTiles[index].Px[0] / Consts.TILE_SIZE;
-                int y = (int)definition.GridTiles[index].Px[1] / Consts.TILE_SIZE;
+                int x = (int)definition.GridTiles[index].Px[0] / TilesetManager.TileSize;
+                int y = (int)definition.GridTiles[index].Px[1] / TilesetManager.TileSize;
 
                 InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
@@ -179,8 +179,8 @@ namespace VED.Physics
             {
                 PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.AutoLayerTiles[index].T];
 
-                int x = (int)definition.AutoLayerTiles[index].Px[0] / Consts.TILE_SIZE;
-                int y = (int)definition.AutoLayerTiles[index].Px[1] / Consts.TILE_SIZE;
+                int x = (int)definition.AutoLayerTiles[index].Px[0] / TilesetManager.TileSize;
+                int y = (int)definition.AutoLayerTiles[index].Px[1] / TilesetManager.TileSize;
 
                 InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
@@ -224,8 +224,8 @@ namespace VED.Physics
             {
                 PhysicsTileset.PhysicsTile tilesetTile = tileset.Tiles[definition.AutoLayerTiles[index].T];
 
-                int x = (int)definition.AutoLayerTiles[index].Px[0] / Consts.TILE_SIZE;
-                int y = (int)definition.AutoLayerTiles[index].Px[1] / Consts.TILE_SIZE;
+                int x = (int)definition.AutoLayerTiles[index].Px[0] / TilesetManager.TileSize;
+                int y = (int)definition.AutoLayerTiles[index].Px[1] / TilesetManager.TileSize;
 
                 InitTile(tileLevel, tilesetTile, x, y, sortingOrder);
             }
