@@ -11,7 +11,7 @@ namespace VED.Physics
             private Enums.PhysicsColliderType _physicsColliderType = Enums.PhysicsColliderType.NONE;
 
             public string PhysicsMaterial => _physicsMaterialType;
-            private string _physicsMaterialType = "DEFAULT";
+            private string _physicsMaterialType = Consts.DEFAULT_MATERIAL_ID;
 
             public PhysicsTile Init(Sprite sprite, Enums.PhysicsColliderType physicsColliderType, string physicsMaterialType)
             {

@@ -91,7 +91,7 @@ namespace VED.Physics
                 }
             }
 
-            return string.Empty;
+            return Consts.DEFAULT_MATERIAL_ID;
         }
     }
 }
