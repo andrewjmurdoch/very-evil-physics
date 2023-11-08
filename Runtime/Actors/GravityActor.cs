@@ -25,11 +25,7 @@ namespace VED.Physics
         {
             get
             {
-                float friction = _physicsMaterial.Friction;
-                if (_groundContact != null) friction *= _groundContact.RemoteObject.PhysicsMaterial.Friction;
-                else friction *= PhysicsManager.Instance.AtmospherePhysicsMaterial.Friction;
-
-                return friction;
+                return _groundContact != null ? _groundContact.RemoteObject.PhysicsMaterial.Friction : PhysicsManager.Instance.AtmospherePhysicsMaterial.Friction;
             }
         }
 
@@ -37,11 +33,7 @@ namespace VED.Physics
         {
             get
             {
-                float traction = _physicsMaterial.Traction;
-                if (_groundContact != null) traction *= _groundContact.RemoteObject.PhysicsMaterial.Traction;
-                else traction *= PhysicsManager.Instance.AtmospherePhysicsMaterial.Traction;
-
-                return traction;
+                return _groundContact != null ? _groundContact.RemoteObject.PhysicsMaterial.Traction : PhysicsManager.Instance.AtmospherePhysicsMaterial.Traction;
             }
         }
 

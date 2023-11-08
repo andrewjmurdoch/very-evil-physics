@@ -11,10 +11,6 @@ namespace VED.Physics
         public PhysicsMaterial PhysicsMaterial => _physicsMaterial;
         [SerializeField] protected PhysicsMaterial _physicsMaterial = null;
 
-        // the physics object's current physics material
-        public PhysicsMaterial CurrentPhysicsMaterial { get => _currentPhysicsMaterial; set => _currentPhysicsMaterial = value; }
-        protected PhysicsMaterial _currentPhysicsMaterial = null;
-
         public Vector2 Velocity { get => _velocity; set => _velocity = value; }
         protected Vector2 _velocity = new Vector2(0, 0);
 
@@ -52,7 +48,6 @@ namespace VED.Physics
         public virtual void Init()
         {
             _physicsMaterial = _physicsMaterial == null ? PhysicsManager.Instance.DefaultPhysicsMaterial : _physicsMaterial;
-            _currentPhysicsMaterial = _physicsMaterial;
         }
 
         public virtual void Deinit()
