@@ -47,6 +47,7 @@ namespace VED.Physics
 
         private const float MAX_CONVERSION_THRESHOLD = 6.0f; // the max value to consider when converting momentum between directions
         private const float MIN_CONVERSION_VALUE     = 0.5f; // the min conversion rate between directions during a slide
+        private const float CONVERSION_RATE = 1.333333f;
 
         public bool SlidingUp => _slidingUp;
         [SerializeField, ReadOnly] protected bool _slidingUp = false;
@@ -71,75 +72,84 @@ namespace VED.Physics
             if (!_slideSettings.CanSlideUpMovingRight && (sign > 0))  return false;
             if (!MoveableVertically[1]) return false;
 
-            // try to slide up on other collider
-            float slide;
-
             // special case for sliding up on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle triangle)
             {
-                PhysicsEdge edge = new PhysicsEdge(sign > 0 ? triangle.LeftPoint : triangle.RightPoint, triangle.TopPoint);
-                slide = collision.LocalCollider.Bottom - edge.A.y;
-
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (edge.A - localCircle.Position).normalized;
-                    Vector2 position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                    slide = position.y - edge.A.y;
-                }
-
-                float gradient = edge.Inverse().Gradient;
-                bool gradientMovingLeft  = sign < 0 && gradient > _slideSettings.GradientSlideUpMovingLeft.x  && gradient < _slideSettings.GradientSlideUpMovingLeft.y;
-                bool gradientMovingRight = sign > 0 && gradient > _slideSettings.GradientSlideUpMovingRight.x && gradient < _slideSettings.GradientSlideUpMovingRight.y;
-
-                if (slide >= 0 && (gradientMovingLeft || gradientMovingRight))
-                {
-                    if (sign < 0)
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideUpMovingLeft.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideUpMovingLeft.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    else
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideUpMovingRight.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideUpMovingRight.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    return true;
-                }
-
-                return false;
+                return CanSlideUpTriangle(sign, collision, out amount);
             }
 
             // special case for sliding up on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle circle)
             {
-                Vector2 position = new Vector2(sign > 0 ? collision.LocalCollider.Right : collision.LocalCollider.Left, collision.LocalCollider.Bottom);
-
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (circle.Position - localCircle.Position).normalized;
-                    position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                }
-
-                slide = position.y - circle.Position.y;
-
-                if (slide >= 0)
-                {
-                    return true;
-                }
+                return CanSlideUpCircle(sign, collision, out amount);
             }
 
             // typical case for sliding up on square collider
-            slide = collision.RemoteCollider.Top - collision.LocalCollider.Bottom;
+            float slide = collision.RemoteCollider.Top - collision.LocalCollider.Bottom;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideUpDist)
             {
                 return true;
             }
 
             return false;
+        }
+
+        protected bool CanSlideUpTriangle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1;
+            PhysicsColliderTriangle triangle = collision.RemoteCollider as PhysicsColliderTriangle;
+
+            PhysicsEdge edge = new PhysicsEdge(sign > 0 ? triangle.LeftPoint : triangle.RightPoint, triangle.TopPoint);
+            float slide = collision.LocalCollider.Bottom - edge.A.y;
+
+            // account for local collider being a circle
+            if (collision.LocalCollider is PhysicsColliderCircle localCircle)
+            {
+                Vector2 direction = (edge.A - localCircle.Position).normalized;
+                Vector2 position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
+                slide = position.y - edge.A.y;
+
+                // circle cannot slide up from beneath triangle, unless it can also slide in the opposite direction horizontally
+                if (slide <= 0) return Mathf.Abs(slide) <= _slideSettings.MaxSlideUpDist && MoveableHorizontally[-sign];
+            }
+
+            // typical case for sliding up on square collider
+            if (slide <= 0) return Mathf.Abs(slide) <= _slideSettings.MaxSlideUpDist;
+
+            Optional<float> gradient = edge.Gradient;
+
+            // if there is no gradient, edge is approx a vertical line and requires typical slide considerations
+            if (!gradient.Enabled)
+            {
+                // typical case for sliding up on square collider
+                slide = collision.RemoteCollider.Top - collision.LocalCollider.Bottom;
+                if (slide >= 0 && slide <= _slideSettings.MaxSlideUpDist)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            // if there is a gradient always allow sliding, but amount can reach 0
+            amount = Mathf.Clamp01(1f / Mathf.Abs(gradient.Value)) * CONVERSION_RATE;
+            return true;
+        }
+
+        protected bool CanSlideUpCircle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1f;
+            PhysicsColliderCircle circle = collision.RemoteCollider as PhysicsColliderCircle;
+            Vector2 position = new Vector2(sign > 0 ? collision.LocalCollider.Right : collision.LocalCollider.Left, collision.LocalCollider.Bottom);
+
+            // account for local collider being a circle
+            if (collision.LocalCollider is PhysicsColliderCircle localCircle)
+            {
+                Vector2 direction = (circle.Position - localCircle.Position).normalized;
+                position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
+            }
+
+            return (position.y - circle.Position.y) >= 0;
         }
 
         protected bool CanSlideUp(float sign, List<PhysicsContact> collisions, out float amount)
@@ -200,7 +210,7 @@ namespace VED.Physics
                     slide = edge.A.y - position.y;
                 }
 
-                float gradient = edge.Inverse().Gradient; 
+                float gradient = edge.Gradient.Value;
                 bool gradientMovingLeft  = sign < 0 && gradient > _slideSettings.GradientSlideDownMovingLeft.x  && gradient < _slideSettings.GradientSlideDownMovingLeft.y;
                 bool gradientMovingRight = sign > 0 && gradient > _slideSettings.GradientSlideDownMovingRight.x && gradient < _slideSettings.GradientSlideDownMovingRight.y;
 
@@ -311,9 +321,10 @@ namespace VED.Physics
                     slide = edge.B.x - position.x;
                 }
 
-                float gradient = edge.Gradient;
+                float gradient = edge.Gradient.Value;
                 bool gradientMovingUp    = sign > 0 && gradient > _slideSettings.GradientSlideLeftMovingUp.x   && gradient < _slideSettings.GradientSlideLeftMovingUp.y;
                 bool gradientMovingDown  = sign < 0 && gradient > _slideSettings.GradientSlideLeftMovingDown.x && gradient < _slideSettings.GradientSlideLeftMovingDown.y;
+
 
                 if (slide >= 0 && (gradientMovingUp || gradientMovingDown))
                 {
@@ -422,7 +433,7 @@ namespace VED.Physics
                     slide = position.x - edge.B.x;
                 }
 
-                float gradient = edge.Gradient;
+                float gradient = edge.Gradient.Value;
                 bool gradientMovingUp   = sign > 0 && gradient > _slideSettings.GradientSlideRightMovingUp.x   && gradient < _slideSettings.GradientSlideRightMovingUp.y;
                 bool gradientMovingDown = sign < 0 && gradient > _slideSettings.GradientSlideRightMovingDown.x && gradient < _slideSettings.GradientSlideRightMovingDown.y;
 

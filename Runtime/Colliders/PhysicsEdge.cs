@@ -1,4 +1,5 @@
 using UnityEngine;
+using VED.Utilities;
 
 namespace VED.Physics
 {
@@ -19,7 +20,7 @@ namespace VED.Physics
 
         public Vector2 Vector => B - A;
 
-        public float Gradient => (B.y - A.y) / (B.x - A.x);
+        public Optional<float> Gradient => (B.x - A.x) == 0 ? new Optional<float>(0f, false) : new Optional<float>((B.y - A.y) / (B.x - A.x), true);
 
         // the left/right/top/bottom most of the original points
         public float OLeft   => Mathf.Min(OA.x, OB.x);
