@@ -26,6 +26,39 @@ namespace VED.Physics
 
         public PhysicsEdge[] Edges => new PhysicsEdge[] { AB, BC, CA };
 
+        public Vector2 ABNormal
+        {
+            get
+            {
+                Vector2 normal = new Vector2(AB.OVector.y, -AB.OVector.x);
+                float sign = Vector2.Dot(normal, CA.OVector) > 0 ? 1f : -1f;
+                normal *= sign;
+                return normal.normalized;
+            }
+        }
+
+        public Vector2 BCNormal
+        {
+            get
+            {
+                Vector2 normal = new Vector2(BC.OVector.y, -BC.OVector.x);
+                float sign = Vector2.Dot(normal, AB.OVector) > 0 ? 1f : -1f;
+                normal *= sign;
+                return normal.normalized;
+            }
+        }
+
+        public Vector2 CANormal
+        {
+            get
+            {
+                Vector2 normal = new Vector2(CA.OVector.y, -CA.OVector.x);
+                float sign = Vector2.Dot(normal, BC.OVector) > 0 ? 1f : -1f;
+                normal *= sign;
+                return normal.normalized;
+            }
+        }
+
         public PhysicsEdge EdgeWithA(Vector2 A)
         {
             if (AB.OA == A) return AB;
@@ -512,27 +545,13 @@ namespace VED.Physics
             return 0;
         }
 
-        private List<PhysicsEdge> GetEdges(Vector2 direction)
+        public List<PhysicsEdge> GetEdges(Vector2 direction)
         {
             List<PhysicsEdge> edges = new List<PhysicsEdge>();
 
-            Vector2 ABNormal = (AB.MidPoint - Position).normalized;
-            if (Vector2.Angle(direction, ABNormal) < 90f)
-            {
-                edges.Add(AB);
-            }
-
-            Vector2 BCNormal = (BC.MidPoint - Position).normalized;
-            if (Vector2.Angle(direction, BCNormal) < 90f)
-            {
-                edges.Add(BC);
-            }
-
-            Vector2 CANormal = (CA.MidPoint - Position).normalized;
-            if (Vector2.Angle(direction, CANormal) < 90f)
-            {
-                edges.Add(CA);
-            }
+            if (Vector2.Angle(direction, ABNormal) < 90f) edges.Add(AB);
+            if (Vector2.Angle(direction, BCNormal) < 90f) edges.Add(BC);
+            if (Vector2.Angle(direction, CANormal) < 90f) edges.Add(CA);
 
             return edges;
         }
