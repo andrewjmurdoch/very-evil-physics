@@ -19,6 +19,7 @@ namespace VED.Physics
         public Vector2 B  = Vector2.zero;
 
         public Vector2 Vector => B - A;
+        public Vector2 OVector => OB - OA;
 
         public Optional<float> Gradient => (B.x - A.x) == 0 ? new Optional<float>(0f, false) : new Optional<float>((B.y - A.y) / (B.x - A.x), true);
 
