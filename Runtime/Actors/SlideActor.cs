@@ -10,44 +10,48 @@ namespace VED.Physics
         [Serializable]
         protected class SlideActorSettings
         {
+            public static AnimationCurve DefaultCurve => new AnimationCurve(new Keyframe[2] { new Keyframe(0f, 1f, 0f, -0.45f), new Keyframe(6f, 0f, 0f, 0f) });
+
+            [Serializable]
+            public class ConversionCurves
+            {
+                [SerializeField] public AnimationCurve Positive = DefaultCurve;
+                [SerializeField] public AnimationCurve Negative = DefaultCurve;
+
+                public AnimationCurve this[float sign] => sign > 0 ? Positive : Negative;
+            }
+
             #region Up
-            [SerializeField] public bool CanSlideUpMovingLeft            = true; // whether actor can slide up, when moving left
-            [SerializeField] public bool CanSlideUpMovingRight           = true; // whether actor can slide up, when moving right
-            [SerializeField] public float MaxSlideUpDist                 = 0.2f;
-            [SerializeField] public Vector2 GradientSlideUpMovingLeft    = new Vector2(-2.00f, 0.00f);
-            [SerializeField] public Vector2 GradientSlideUpMovingRight   = new Vector2( 0.00f, 2.00f);
+            [SerializeField] public bool CanSlideUpMovingLeft = true; // whether actor can slide up, when moving left
+            [SerializeField] public bool CanSlideUpMovingRight = true; // whether actor can slide up, when moving right
+            [SerializeField] public float MaxSlideUpDist = 0.2f;
+            [SerializeField] public ConversionCurves SlideUpConversionCurve;
             #endregion
 
             #region Down
-            [SerializeField] public bool CanSlideDownMovingLeft          = true; // whether actor can slide down, when moving left
-            [SerializeField] public bool CanSlideDownMovingRight         = true; // whether actor can slide down, when moving right
-            [SerializeField] public float MaxSlideDownDist               = 0.2f;
-            [SerializeField] public Vector2 GradientSlideDownMovingLeft  = new Vector2( 0.00f, 2.00f);
-            [SerializeField] public Vector2 GradientSlideDownMovingRight = new Vector2(-2.00f, 0.00f);
+            [SerializeField] public bool CanSlideDownMovingLeft = true; // whether actor can slide down, when moving left
+            [SerializeField] public bool CanSlideDownMovingRight = true; // whether actor can slide down, when moving right
+            [SerializeField] public float MaxSlideDownDist = 0.2f;
+            [SerializeField] public ConversionCurves SlideDownConversionCurve;
             #endregion
 
             #region Left
-            [SerializeField] public bool CanSlideLeftMovingUp            = true; // whether actor can slide left, when moving up
-            [SerializeField] public bool CanSlideLeftMovingDown          = true; // whether actor can slide left, when moving down, useful for actors with gravity
-            [SerializeField] public float MaxSlideLeftDist               = 0.2f;
-            [SerializeField] public Vector2 GradientSlideLeftMovingUp    = new Vector2(-2.00f, -0.50f);
-            [SerializeField] public Vector2 GradientSlideLeftMovingDown  = new Vector2( 1.50f,  float.MaxValue);
+            [SerializeField] public bool CanSlideLeftMovingUp = true; // whether actor can slide left, when moving up
+            [SerializeField] public bool CanSlideLeftMovingDown = true; // whether actor can slide left, when moving down, useful for actors with gravity
+            [SerializeField] public float MaxSlideLeftDist = 0.2f;
+            [SerializeField] public ConversionCurves SlideLeftConversionCurve;
+
             #endregion
 
             #region Right
-            [SerializeField] public bool CanSlideRightMovingUp           = true; // whether actor can slide right, when moving up
-            [SerializeField] public bool CanSlideRightMovingDown         = true; // whether actor can slide right, when moving down, useful for actors with gravity
-            [SerializeField] public float MaxSlideRightDist              = 0.2f;
-            [SerializeField] public Vector2 GradientSlideRightMovingUp   = new Vector2( 0.50f,  2.00f);
-            [SerializeField] public Vector2 GradientSlideRightMovingDown = new Vector2(float.MinValue, -1.50f);
+            [SerializeField] public bool CanSlideRightMovingUp = true; // whether actor can slide right, when moving up
+            [SerializeField] public bool CanSlideRightMovingDown = true; // whether actor can slide right, when moving down, useful for actors with gravity
+            [SerializeField] public float MaxSlideRightDist = 0.2f;
+            [SerializeField] public ConversionCurves SlideRightConversionCurve;
             #endregion
         }
 
         [SerializeField] protected SlideActorSettings _slideSettings = new SlideActorSettings();
-
-        private const float MAX_CONVERSION_THRESHOLD = 6.0f; // the max value to consider when converting momentum between directions
-        private const float MIN_CONVERSION_VALUE     = 0.5f; // the min conversion rate between directions during a slide
-        private const float CONVERSION_RATE = 1.333333f;
 
         public bool SlidingUp => _slidingUp;
         [SerializeField, ReadOnly] protected bool _slidingUp = false;
@@ -68,18 +72,18 @@ namespace VED.Physics
         protected bool CanSlideUp(float sign, PhysicsContact collision, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideUpMovingLeft  && (sign < 0))  return false;
-            if (!_slideSettings.CanSlideUpMovingRight && (sign > 0))  return false;
+            if (!_slideSettings.CanSlideUpMovingLeft && (sign < 0)) return false;
+            if (!_slideSettings.CanSlideUpMovingRight && (sign > 0)) return false;
             if (!MoveableVertically[1]) return false;
 
             // special case for sliding up on triangle collider
-            if (collision.RemoteCollider is PhysicsColliderTriangle triangle)
+            if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
                 return CanSlideUpTriangle(sign, collision, out amount);
             }
 
             // special case for sliding up on circle collider
-            if (collision.RemoteCollider is PhysicsColliderCircle circle)
+            if (collision.RemoteCollider is PhysicsColliderCircle)
             {
                 return CanSlideUpCircle(sign, collision, out amount);
             }
@@ -98,42 +102,66 @@ namespace VED.Physics
         {
             amount = 1;
             PhysicsColliderTriangle triangle = collision.RemoteCollider as PhysicsColliderTriangle;
+            Optional<float> gradient;
 
-            PhysicsEdge edge = new PhysicsEdge(sign > 0 ? triangle.LeftPoint : triangle.RightPoint, triangle.TopPoint);
-            float slide = collision.LocalCollider.Bottom - edge.A.y;
-
-            // account for local collider being a circle
-            if (collision.LocalCollider is PhysicsColliderCircle localCircle)
+            List<PhysicsEdge> GetEdges()
             {
-                Vector2 direction = (edge.A - localCircle.Position).normalized;
-                Vector2 position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                slide = position.y - edge.A.y;
+                List<PhysicsEdge> edges = new List<PhysicsEdge>();
+                List<PhysicsEdge> edgesVer = triangle.TopEdges;
+                List<PhysicsEdge> edgesHor = sign > 0 ? triangle.LeftEdges : triangle.RightEdges;
 
-                // circle cannot slide up from beneath triangle, unless it can also slide in the opposite direction horizontally
-                if (slide <= 0) return Mathf.Abs(slide) <= _slideSettings.MaxSlideUpDist && MoveableHorizontally[-sign];
-            }
-
-            // typical case for sliding up on square collider
-            if (slide <= 0) return Mathf.Abs(slide) <= _slideSettings.MaxSlideUpDist;
-
-            Optional<float> gradient = edge.Gradient;
-
-            // if there is no gradient, edge is approx a vertical line and requires typical slide considerations
-            if (!gradient.Enabled)
-            {
-                // typical case for sliding up on square collider
-                slide = collision.RemoteCollider.Top - collision.LocalCollider.Bottom;
-                if (slide >= 0 && slide <= _slideSettings.MaxSlideUpDist)
+                for (int i = 0; i < edgesVer.Count; i++)
                 {
-                    return true;
+                    for (int j = 0; j < edgesHor.Count; j++)
+                    {
+                        if (edgesVer[i].Is(edgesHor[j]))
+                            edges.Add(edgesVer[i]);
+                    }
                 }
 
-                return false;
+                return edges;
+            }
+            List<PhysicsEdge> edges = GetEdges();
+
+            bool OneEdge(out float amount)
+            {
+                gradient = edges[0].Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideUpConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Bottom < edges[0].Bottom)
+                    return collision.LocalCollider.Bottom - edges[0].Bottom <= _slideSettings.MaxSlideUpDist;
+
+                return true;
             }
 
-            // if there is a gradient always allow sliding, but amount can reach 0
-            amount = Mathf.Clamp01(1f / Mathf.Abs(gradient.Value)) * CONVERSION_RATE;
-            return true;
+            bool TwoEdge(out float amount)
+            {
+                PhysicsEdge edgeBottom, edgeTop;
+
+                if (edges[0].Bottom < edges[1].Bottom)
+                {
+                    edgeBottom = edges[0];
+                    edgeTop = edges[1];
+                }
+                else
+                {
+                    edgeBottom = edges[1];
+                    edgeTop = edges[0];
+                }
+
+                gradient = (collision.LocalCollider.Bottom < edgeTop.Bottom) ? edgeBottom.Gradient : edgeTop.Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideUpConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Bottom < edgeBottom.Bottom)
+                    return collision.LocalCollider.Bottom - edgeBottom.Bottom <= _slideSettings.MaxSlideUpDist;
+
+                return true;
+            }
+
+            if (edges.Count == 1) return OneEdge(out amount);
+            if (edges.Count == 2) return TwoEdge(out amount);
+
+            return Mathf.Abs(collision.LocalCollider.Bottom - collision.RemoteCollider.Top) <= _slideSettings.MaxSlideUpDist;
         }
 
         protected bool CanSlideUpCircle(float sign, PhysicsContact collision, out float amount)
@@ -155,8 +183,8 @@ namespace VED.Physics
         protected bool CanSlideUp(float sign, List<PhysicsContact> collisions, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideUpMovingLeft  && (_velocity.x < 0))  return false;
-            if (!_slideSettings.CanSlideUpMovingRight && (_velocity.x > 0))  return false;
+            if (!_slideSettings.CanSlideUpMovingLeft && (_velocity.x < 0)) return false;
+            if (!_slideSettings.CanSlideUpMovingRight && (_velocity.x > 0)) return false;
             if (!MoveableVertically[1]) return false;
 
             bool canSlide = true;
@@ -189,73 +217,24 @@ namespace VED.Physics
         protected bool CanSlideDown(float sign, PhysicsContact collision, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideDownMovingLeft  && (sign < 0)) return false;
+            if (!_slideSettings.CanSlideDownMovingLeft && (sign < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (sign > 0)) return false;
             if (!MoveableVertically[-1]) return false;
 
-            // try to slide underneath other collider
-            float slide;
-
             // special case for sliding under triangle collider
-            if (collision.RemoteCollider is PhysicsColliderTriangle triangle)
+            if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                PhysicsEdge edge = new PhysicsEdge(sign > 0 ? triangle.LeftPoint : triangle.RightPoint, triangle.BottomPoint);
-                slide = edge.A.y - collision.LocalCollider.Top;
-
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (edge.A - localCircle.Position).normalized;
-                    Vector2 position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                    slide = edge.A.y - position.y;
-                }
-
-                float gradient = edge.Gradient.Value;
-                bool gradientMovingLeft  = sign < 0 && gradient > _slideSettings.GradientSlideDownMovingLeft.x  && gradient < _slideSettings.GradientSlideDownMovingLeft.y;
-                bool gradientMovingRight = sign > 0 && gradient > _slideSettings.GradientSlideDownMovingRight.x && gradient < _slideSettings.GradientSlideDownMovingRight.y;
-
-                if (slide >= 0 && (gradientMovingLeft || gradientMovingRight))
-                {
-                    if (sign < 0)
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideDownMovingLeft.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideDownMovingLeft.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    else
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideDownMovingRight.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideDownMovingRight.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    return true;
-                }
-
-                return false;
+                return CanSlideDownTriangle(sign, collision, out amount);
             }
 
             // special case for sliding under circle collider
-            if (collision.RemoteCollider is PhysicsColliderCircle circle)
+            if (collision.RemoteCollider is PhysicsColliderCircle)
             {
-                Vector2 position = new Vector2(sign > 0 ? collision.LocalCollider.Right : collision.LocalCollider.Left, collision.LocalCollider.Top);
-
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (circle.Position - localCircle.Position).normalized;
-                    position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                }
-
-                slide = circle.Position.y - position.y;
-
-                if (slide >= 0)
-                {
-                    return true;
-                }
+                return CanSlideDownCircle(sign, collision, out amount);
             }
 
-            // typical case for sliding up on square collider
-            slide = collision.LocalCollider.Top - collision.RemoteCollider.Bottom;
+            // typical case for sliding down on square collider
+            float slide = collision.LocalCollider.Top - collision.RemoteCollider.Bottom;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideDownDist)
             {
                 return true;
@@ -264,10 +243,92 @@ namespace VED.Physics
             return false;
         }
 
+        protected bool CanSlideDownTriangle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1;
+            PhysicsColliderTriangle triangle = collision.RemoteCollider as PhysicsColliderTriangle;
+            Optional<float> gradient;
+
+            List<PhysicsEdge> GetEdges()
+            {
+                List<PhysicsEdge> edges = new List<PhysicsEdge>();
+                List<PhysicsEdge> edgesVer = triangle.BottomEdges;
+                List<PhysicsEdge> edgesHor = sign > 0 ? triangle.LeftEdges : triangle.RightEdges;
+
+                for (int i = 0; i < edgesVer.Count; i++)
+                {
+                    for (int j = 0; j < edgesHor.Count; j++)
+                    {
+                        if (edgesVer[i].Is(edgesHor[j]))
+                            edges.Add(edgesVer[i]);
+                    }
+                }
+
+                return edges;
+            }
+            List<PhysicsEdge> edges = GetEdges();
+
+            bool OneEdge(out float amount)
+            {
+                gradient = edges[0].Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideDownConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Top > edges[0].Top)
+                    return collision.LocalCollider.Top - edges[0].Top <= _slideSettings.MaxSlideDownDist;
+
+                return true;
+            }
+
+            bool TwoEdge(out float amount)
+            {
+                PhysicsEdge edgeBottom, edgeTop;
+
+                if (edges[0].Bottom < edges[1].Bottom)
+                {
+                    edgeBottom = edges[0];
+                    edgeTop = edges[1];
+                }
+                else
+                {
+                    edgeBottom = edges[1];
+                    edgeTop = edges[0];
+                }
+
+                gradient = (collision.LocalCollider.Top > edgeBottom.Top) ? edgeTop.Gradient : edgeBottom.Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideDownConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Top > edgeTop.Top)
+                    return collision.LocalCollider.Top - edgeTop.Top <= _slideSettings.MaxSlideDownDist;
+
+                return true;
+            }
+
+            if (edges.Count == 1) return OneEdge(out amount);
+            if (edges.Count == 2) return TwoEdge(out amount);
+
+            return Mathf.Abs(collision.LocalCollider.Top - collision.RemoteCollider.Bottom) <= _slideSettings.MaxSlideDownDist;
+        }
+
+        protected bool CanSlideDownCircle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1f;
+            PhysicsColliderCircle circle = collision.RemoteCollider as PhysicsColliderCircle;
+            Vector2 position = new Vector2(sign > 0 ? collision.LocalCollider.Right : collision.LocalCollider.Left, collision.LocalCollider.Top);
+
+            // account for local collider being a circle
+            if (collision.LocalCollider is PhysicsColliderCircle localCircle)
+            {
+                Vector2 direction = (circle.Position - localCircle.Position).normalized;
+                position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
+            }
+
+            return (circle.Position.y - position.y) >= 0;
+        }
+
         protected bool CanSlideDown(float sign, List<PhysicsContact> collisions, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideDownMovingLeft  && (_velocity.x < 0)) return false;
+            if (!_slideSettings.CanSlideDownMovingLeft && (_velocity.x < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (_velocity.x > 0)) return false;
             if (!MoveableVertically[-1]) return false;
 
@@ -300,74 +361,24 @@ namespace VED.Physics
         protected bool CanSlideLeft(float sign, PhysicsContact collision, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideLeftMovingUp   && (sign > 0))   return false;
-            if (!_slideSettings.CanSlideLeftMovingDown && (sign < 0))   return false;
+            if (!_slideSettings.CanSlideLeftMovingUp && (sign > 0)) return false;
+            if (!_slideSettings.CanSlideLeftMovingDown && (sign < 0)) return false;
             if (!MoveableHorizontally[-1]) return false;
 
-            // try to slide to the left of other collider
-            float slide;
-
             // special case for sliding on triangle collider
-            if (collision.RemoteCollider is PhysicsColliderTriangle triangle)
+            if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                PhysicsEdge edge = new PhysicsEdge(triangle.LeftPoint, sign > 0 ? triangle.BottomPoint : triangle.TopPoint);
-                slide = edge.B.x - collision.LocalCollider.Right;
-
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (edge.B - localCircle.Position).normalized;
-                    Vector2 position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                    slide = edge.B.x - position.x;
-                }
-
-                float gradient = edge.Gradient.Value;
-                bool gradientMovingUp    = sign > 0 && gradient > _slideSettings.GradientSlideLeftMovingUp.x   && gradient < _slideSettings.GradientSlideLeftMovingUp.y;
-                bool gradientMovingDown  = sign < 0 && gradient > _slideSettings.GradientSlideLeftMovingDown.x && gradient < _slideSettings.GradientSlideLeftMovingDown.y;
-
-
-                if (slide >= 0 && (gradientMovingUp || gradientMovingDown))
-                {
-                    if (sign > 0)
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideLeftMovingUp.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideLeftMovingUp.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    else
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideLeftMovingDown.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideLeftMovingDown.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    return true;
-                }
-
-                return false;
+                return CanSlideLeftTriangle(sign, collision, out amount);
             }
 
             // special case for sliding on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle circle)
             {
-                Vector2 position = new Vector2(collision.LocalCollider.Right, sign > 0 ? collision.LocalCollider.Top : collision.LocalCollider.Bottom);
-
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (circle.Position - localCircle.Position).normalized;
-                    position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                }
-
-                slide = circle.Position.x - position.x;
-
-                if (slide >= 0)
-                {
-                    return true;
-                }
+                return CanSlideLeftCircle(sign, collision, out amount);
             }
 
             // typical case for sliding left on square collider
-            slide = collision.LocalCollider.Right - collision.RemoteCollider.Left;
+            float slide = collision.LocalCollider.Right - collision.RemoteCollider.Left;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideLeftDist)
             {
                 return true;
@@ -376,11 +387,93 @@ namespace VED.Physics
             return false;
         }
 
+        protected bool CanSlideLeftTriangle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1;
+            PhysicsColliderTriangle triangle = collision.RemoteCollider as PhysicsColliderTriangle;
+            Optional<float> gradient;
+
+            List<PhysicsEdge> GetEdges()
+            {
+                List<PhysicsEdge> edges = new List<PhysicsEdge>();
+                List<PhysicsEdge> edgesHor = triangle.LeftEdges;
+                List<PhysicsEdge> edgesVer = sign > 0 ? triangle.BottomEdges : triangle.TopEdges;
+
+                for (int i = 0; i < edgesHor.Count; i++)
+                {
+                    for (int j = 0; j < edgesVer.Count; j++)
+                    {
+                        if (edgesHor[i].Is(edgesVer[j]))
+                            edges.Add(edgesHor[i]);
+                    }
+                }
+
+                return edges;
+            }
+            List<PhysicsEdge> edges = GetEdges();
+
+            bool OneEdge(out float amount)
+            {
+                gradient = edges[0].Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideLeftConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Right > edges[0].Right)
+                    return collision.LocalCollider.Right - edges[0].Right <= _slideSettings.MaxSlideLeftDist;
+
+                return true;
+            }
+
+            bool TwoEdge(out float amount)
+            {
+                PhysicsEdge edgeLeft, edgeRight;
+
+                if (edges[0].Left < edges[1].Left)
+                {
+                    edgeLeft = edges[0];
+                    edgeRight = edges[1];
+                }
+                else
+                {
+                    edgeLeft = edges[1];
+                    edgeRight = edges[0];
+                }
+
+                gradient = (collision.LocalCollider.Right > edgeLeft.Right) ? edgeRight.Gradient : edgeLeft.Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideLeftConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Right > edgeRight.Right)
+                    return collision.LocalCollider.Right - edgeRight.Right <= _slideSettings.MaxSlideLeftDist;
+
+                return true;
+            }
+
+            if (edges.Count == 1) return OneEdge(out amount);
+            if (edges.Count == 2) return TwoEdge(out amount);
+
+            return Mathf.Abs(collision.LocalCollider.Right - collision.RemoteCollider.Left) <= _slideSettings.MaxSlideLeftDist;
+        }
+
+        protected bool CanSlideLeftCircle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1f;
+            PhysicsColliderCircle circle = collision.RemoteCollider as PhysicsColliderCircle;
+            Vector2 position = new Vector2(collision.LocalCollider.Right, sign > 0 ? collision.LocalCollider.Top : collision.LocalCollider.Bottom);
+
+            // account for local collider being a circle
+            if (collision.LocalCollider is PhysicsColliderCircle localCircle)
+            {
+                Vector2 direction = (circle.Position - localCircle.Position).normalized;
+                position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
+            }
+
+            return (circle.Position.x - position.x) >= 0;
+        }
+
         protected bool CanSlideLeft(float sign, List<PhysicsContact> collisions, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideLeftMovingUp   && (_velocity.y > 0))   return false;
-            if (!_slideSettings.CanSlideLeftMovingDown && (_velocity.y < 0))   return false;
+            if (!_slideSettings.CanSlideLeftMovingUp && (_velocity.y > 0)) return false;
+            if (!_slideSettings.CanSlideLeftMovingDown && (_velocity.y < 0)) return false;
             if (!MoveableHorizontally[-1]) return false;
 
             bool canSlide = true;
@@ -412,73 +505,24 @@ namespace VED.Physics
         protected bool CanSlideRight(float sign, PhysicsContact collision, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideRightMovingUp   && (sign > 0))  return false;
-            if (!_slideSettings.CanSlideRightMovingDown && (sign < 0))  return false;
+            if (!_slideSettings.CanSlideRightMovingUp && (sign > 0)) return false;
+            if (!_slideSettings.CanSlideRightMovingDown && (sign < 0)) return false;
             if (!MoveableHorizontally[1]) return false;
 
-            // try to slide to the right of other collider
-            float slide;
-
             // special case for sliding on triangle collider
-            if (collision.RemoteCollider is PhysicsColliderTriangle triangle)
+            if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                PhysicsEdge edge = new PhysicsEdge(triangle.RightPoint, sign > 0 ? triangle.BottomPoint : triangle.TopPoint);
-                slide = collision.LocalCollider.Left - edge.B.x;
-
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (edge.B - localCircle.Position).normalized;
-                    Vector2 position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                    slide = position.x - edge.B.x;
-                }
-
-                float gradient = edge.Gradient.Value;
-                bool gradientMovingUp   = sign > 0 && gradient > _slideSettings.GradientSlideRightMovingUp.x   && gradient < _slideSettings.GradientSlideRightMovingUp.y;
-                bool gradientMovingDown = sign < 0 && gradient > _slideSettings.GradientSlideRightMovingDown.x && gradient < _slideSettings.GradientSlideRightMovingDown.y;
-
-                if (slide >= 0 && (gradientMovingUp || gradientMovingDown))
-                {
-                    if (sign > 0)
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideRightMovingUp.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideRightMovingUp.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = Mathf.Lerp(MIN_CONVERSION_VALUE, 1f, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    else
-                    {
-                        float min = Mathf.Min(_slideSettings.GradientSlideRightMovingDown.x, -MAX_CONVERSION_THRESHOLD);
-                        float max = Mathf.Max(_slideSettings.GradientSlideRightMovingDown.y,  MAX_CONVERSION_THRESHOLD);
-                        amount = 1f - Mathf.Lerp(0f, MIN_CONVERSION_VALUE, Mathf.InverseLerp(min, max, gradient));
-                    }
-                    return true;
-                }
-
-                return false;
+                return CanSlideRightTriangle(sign, collision, out amount);
             }
 
             // special case for sliding on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle circle)
             {
-                Vector2 position = new Vector2(collision.LocalCollider.Left, sign > 0 ? collision.LocalCollider.Top : collision.LocalCollider.Bottom);
-                
-                // account for local collider being a circle
-                if (collision.LocalCollider is PhysicsColliderCircle localCircle)
-                {
-                    Vector2 direction = (circle.Position - localCircle.Position).normalized;
-                    position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
-                }
-
-                slide = position.x - circle.Position.x;
-
-                if (slide >= 0)
-                {
-                    return true;
-                }
+                return CanSlideRightCircle(sign, collision, out amount);
             }
 
             // typical case for sliding right on square collider
-            slide = collision.RemoteCollider.Right - collision.LocalCollider.Left;
+            float slide = collision.RemoteCollider.Right - collision.LocalCollider.Left;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideRightDist)
             {
                 return true;
@@ -487,11 +531,93 @@ namespace VED.Physics
             return false;
         }
 
+        protected bool CanSlideRightTriangle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1;
+            PhysicsColliderTriangle triangle = collision.RemoteCollider as PhysicsColliderTriangle;
+            Optional<float> gradient;
+
+            List<PhysicsEdge> GetEdges()
+            {
+                List<PhysicsEdge> edges = new List<PhysicsEdge>();
+                List<PhysicsEdge> edgesHor = triangle.RightEdges;
+                List<PhysicsEdge> edgesVer = sign > 0 ? triangle.BottomEdges : triangle.TopEdges;
+
+                for (int i = 0; i < edgesHor.Count; i++)
+                {
+                    for (int j = 0; j < edgesVer.Count; j++)
+                    {
+                        if (edgesHor[i].Is(edgesVer[j]))
+                            edges.Add(edgesHor[i]);
+                    }
+                }
+
+                return edges;
+            }
+            List<PhysicsEdge> edges = GetEdges();
+
+            bool OneEdge(out float amount)
+            {
+                gradient = edges[0].Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideRightConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Left < edges[0].Left)
+                    return collision.LocalCollider.Left - edges[0].Left <= _slideSettings.MaxSlideRightDist;
+
+                return true;
+            }
+
+            bool TwoEdge(out float amount)
+            {
+                PhysicsEdge edgeLeft, edgeRight;
+
+                if (edges[0].Left < edges[1].Left)
+                {
+                    edgeLeft = edges[0];
+                    edgeRight = edges[1];
+                }
+                else
+                {
+                    edgeLeft = edges[1];
+                    edgeRight = edges[0];
+                }
+
+                gradient = (collision.LocalCollider.Left < edgeRight.Left) ? edgeLeft.Gradient : edgeRight.Gradient;
+                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideRightConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+
+                if (collision.LocalCollider.Left < edgeLeft.Left)
+                    return collision.LocalCollider.Left - edgeLeft.Left <= _slideSettings.MaxSlideRightDist;
+
+                return true;
+            }
+
+            if (edges.Count == 1) return OneEdge(out amount);
+            if (edges.Count == 2) return TwoEdge(out amount);
+
+            return Mathf.Abs(collision.LocalCollider.Left - collision.RemoteCollider.Right) <= _slideSettings.MaxSlideRightDist;
+        }
+
+        protected bool CanSlideRightCircle(float sign, PhysicsContact collision, out float amount)
+        {
+            amount = 1f;
+            PhysicsColliderCircle circle = collision.RemoteCollider as PhysicsColliderCircle;
+            Vector2 position = new Vector2(collision.LocalCollider.Left, sign > 0 ? collision.LocalCollider.Top : collision.LocalCollider.Bottom);
+
+            // account for local collider being a circle
+            if (collision.LocalCollider is PhysicsColliderCircle localCircle)
+            {
+                Vector2 direction = (circle.Position - localCircle.Position).normalized;
+                position = (localCircle.Position + direction * localCircle.Radius) - (direction * COLLISION_ERROR_MARGIN);
+            }
+
+            return (position.x - circle.Position.x) >= 0;
+        }
+
         protected bool CanSlideRight(float sign, List<PhysicsContact> collisions, out float amount)
         {
             amount = 1;
-            if (!_slideSettings.CanSlideRightMovingUp   && (_velocity.y > 0))  return false;
-            if (!_slideSettings.CanSlideRightMovingDown && (_velocity.y < 0))  return false;
+            if (!_slideSettings.CanSlideRightMovingUp && (_velocity.y > 0)) return false;
+            if (!_slideSettings.CanSlideRightMovingDown && (_velocity.y < 0)) return false;
             if (!MoveableHorizontally[1]) return false;
 
             bool canSlide = true;
@@ -530,7 +656,7 @@ namespace VED.Physics
             List<PhysicsContact> solids = CollidingHorizontally(sign, _nearbySolids);
             foreach (PhysicsContact contact in solids)
             {
-                if (CanSlideUp  (sign, contact, out amount)) continue;
+                if (CanSlideUp(sign, contact, out amount)) continue;
                 if (CanSlideDown(sign, contact, out amount)) continue;
                 return false;
             }
@@ -541,7 +667,7 @@ namespace VED.Physics
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
                 if (actor.Immoveable || !actor.MoveableHorizontally[sign])
                 {
-                    if (CanSlideUp  (sign, contact, out amount)) continue;
+                    if (CanSlideUp(sign, contact, out amount)) continue;
                     if (CanSlideDown(sign, contact, out amount)) continue;
                     return false;
                 }
@@ -561,7 +687,7 @@ namespace VED.Physics
             List<PhysicsContact> solids = CollidingVertically(sign, _nearbySolids);
             foreach (PhysicsContact contact in solids)
             {
-                if (CanSlideLeft (sign, contact, out amount)) continue;
+                if (CanSlideLeft(sign, contact, out amount)) continue;
                 if (CanSlideRight(sign, contact, out amount)) continue;
                 return false;
             }
@@ -572,7 +698,7 @@ namespace VED.Physics
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
                 if (actor.Immoveable || !actor.MoveableVertically[sign])
                 {
-                    if (CanSlideLeft (sign, contact, out amount)) continue;
+                    if (CanSlideLeft(sign, contact, out amount)) continue;
                     if (CanSlideRight(sign, contact, out amount)) continue;
                     return false;
                 }
