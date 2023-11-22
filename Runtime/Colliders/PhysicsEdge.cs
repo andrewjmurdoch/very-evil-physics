@@ -46,6 +46,11 @@ namespace VED.Physics
         public Vector2 BottomPoint  => A.y < B.y ? A : B;
         public Vector2 MidPoint     => Vector2.Lerp(A, B, 0.5f);
 
+        public bool Is(PhysicsEdge other)
+        {
+            return other.OA == OA && other.OB == OB;
+        }
+
         public bool Colliding(PhysicsCollider other)
         {
             if (other is PhysicsColliderCircle circle)
