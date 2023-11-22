@@ -6,6 +6,8 @@ namespace VED.Physics
 {
     public class PhysicsColliderTriangle : PhysicsCollider
     {
+        private const float EDGE_DIRECTION_TOLERANCE = 5f;
+
         [HideInInspector] public Vector2 mA = new Vector2( 0.00f,  0.50f);
         [HideInInspector] public Vector2 mB = new Vector2(-0.40f, -0.30f);
         [HideInInspector] public Vector2 mC = new Vector2( 0.40f, -0.30f);
@@ -549,9 +551,9 @@ namespace VED.Physics
         {
             List<PhysicsEdge> edges = new List<PhysicsEdge>();
 
-            if (Vector2.Angle(direction, ABNormal) < 90f) edges.Add(AB);
-            if (Vector2.Angle(direction, BCNormal) < 90f) edges.Add(BC);
-            if (Vector2.Angle(direction, CANormal) < 90f) edges.Add(CA);
+            if (Vector2.Angle(direction, ABNormal) < (90f - EDGE_DIRECTION_TOLERANCE)) edges.Add(AB);
+            if (Vector2.Angle(direction, BCNormal) < (90f - EDGE_DIRECTION_TOLERANCE)) edges.Add(BC);
+            if (Vector2.Angle(direction, CANormal) < (90f - EDGE_DIRECTION_TOLERANCE)) edges.Add(CA);
 
             return edges;
         }
