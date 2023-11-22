@@ -21,7 +21,7 @@ namespace VED.Physics
         public Vector2 Vector => B - A;
         public Vector2 OVector => OB - OA;
 
-        public Optional<float> Gradient => (B.x - A.x) == 0 ? new Optional<float>(0f, false) : new Optional<float>((B.y - A.y) / (B.x - A.x), true);
+        public Optional<float> Gradient => (B.x - A.x) == 0 ? new Optional<float>(false, 0f) : new Optional<float>(true, (B.y - A.y) / (B.x - A.x));
 
         // the left/right/top/bottom most of the original points
         public float OLeft   => Mathf.Min(OA.x, OB.x);
