@@ -68,6 +68,8 @@ namespace VED.Physics
         public bool SlidingVertically => _slidingDown || _slidingUp;
         public bool SlidingHorizontally => _slidingLeft || _slidingRight;
 
+        private const float MIN_AMOUNT_THRESHOLD = 0.1f;
+
         #region Up
         protected bool CanSlideUp(float sign, PhysicsContact collision, out float amount)
         {
@@ -79,20 +81,20 @@ namespace VED.Physics
             // special case for sliding up on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideUpTriangle(sign, collision, out amount);
+                return CanSlideUpTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding up on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
-                return CanSlideUpCircle(sign, collision, out amount);
+                return CanSlideUpCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // typical case for sliding up on square collider
             float slide = collision.RemoteCollider.Top - collision.LocalCollider.Bottom;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideUpDist)
             {
-                return true;
+                return amount > MIN_AMOUNT_THRESHOLD;
             }
 
             return false;
@@ -201,7 +203,7 @@ namespace VED.Physics
         protected void PerformSlideUp(float amount = 1)
         {
             // perform slide up
-            _slidingUp = true;
+            _slidingUp = amount > MIN_AMOUNT_THRESHOLD;
 
             // if previously moving downward, cancel vertical movement
             _yRounded = Math.Max(_yRounded, 0f);
@@ -224,20 +226,20 @@ namespace VED.Physics
             // special case for sliding under triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideDownTriangle(sign, collision, out amount);
+                return CanSlideDownTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding under circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
-                return CanSlideDownCircle(sign, collision, out amount);
+                return CanSlideDownCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // typical case for sliding down on square collider
             float slide = collision.LocalCollider.Top - collision.RemoteCollider.Bottom;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideDownDist)
             {
-                return true;
+                return amount > MIN_AMOUNT_THRESHOLD;
             }
 
             return false;
@@ -345,7 +347,7 @@ namespace VED.Physics
         protected void PerformSlideDown(float amount = 1)
         {
             // perform slide down
-            _slidingDown = true;
+            _slidingDown = amount > MIN_AMOUNT_THRESHOLD;
 
             // if previously moving upward, cancel vertical movement
             _yRounded = Math.Min(_yRounded, 0f);
@@ -368,20 +370,20 @@ namespace VED.Physics
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideLeftTriangle(sign, collision, out amount);
+                return CanSlideLeftTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle circle)
             {
-                return CanSlideLeftCircle(sign, collision, out amount);
+                return CanSlideLeftCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // typical case for sliding left on square collider
             float slide = collision.LocalCollider.Right - collision.RemoteCollider.Left;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideLeftDist)
             {
-                return true;
+                return amount > MIN_AMOUNT_THRESHOLD;
             }
 
             return false;
@@ -489,7 +491,7 @@ namespace VED.Physics
         protected void PerformSlideLeft(float amount = 1)
         {
             // perform slide left
-            _slidingLeft = true;
+            _slidingLeft = amount > MIN_AMOUNT_THRESHOLD;
 
             // if previously moving right, cancel horizontal movement
             _xRounded = Math.Min(_xRounded, 0f);
@@ -512,20 +514,20 @@ namespace VED.Physics
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideRightTriangle(sign, collision, out amount);
+                return CanSlideRightTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle circle)
             {
-                return CanSlideRightCircle(sign, collision, out amount);
+                return CanSlideRightCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // typical case for sliding right on square collider
             float slide = collision.RemoteCollider.Right - collision.LocalCollider.Left;
             if (slide >= 0 && slide <= _slideSettings.MaxSlideRightDist)
             {
-                return true;
+                return amount > MIN_AMOUNT_THRESHOLD;
             }
 
             return false;
@@ -633,7 +635,7 @@ namespace VED.Physics
         protected void PerformSlideRight(float amount = 1)
         {
             // perform slide right
-            _slidingRight = true;
+            _slidingRight = amount > MIN_AMOUNT_THRESHOLD;
 
             // if previously moving leftward, cancel horizontal movement
             _xRounded = Math.Max(_xRounded, 0);
