@@ -12,7 +12,7 @@ namespace VED.Physics
         [SerializeField] protected PhysicsMaterial _physicsMaterial = null;
 
         public Vector2 Velocity { get => _velocity; set => _velocity = value; }
-        protected Vector2 _velocity = new Vector2(0, 0);
+        [SerializeField, ReadOnly] protected Vector2 _velocity = new Vector2(0, 0);
 
         // this physics object's PhysicsColliders
         public List<PhysicsCollider> Colliders => _colliders;
