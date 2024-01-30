@@ -129,7 +129,7 @@ namespace VED.Physics
 
         protected virtual void TickFriction()
         {
-            float friction = Friction;
+            float friction = Friction * Time.fixedDeltaTime;
 
             // apply horizontal friction (velocity -= sign x clamp(weight x friction x velocity, 0, velocity))
             // never remove more than (velocity) as this will cause the actor to move in the opposite direction

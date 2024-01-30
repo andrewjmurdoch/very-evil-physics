@@ -71,14 +71,15 @@ namespace VED.Physics
         protected override void TickFriction()
         {
             // find current friction
-            float friction = Friction;
+            float friction = Friction * Time.fixedDeltaTime;
+
             // apply friction modification when crouching
             friction *= (_crouched && Grounded) ? _settings.CROUCH_FRICTION : 1f;
 
             // apply horizontal friction (velocity -= sign * clamp(friction * velocity, 0, velocity))
             // never remove more than (velocity) as this will cause the actor to move in the opposite direction
-            _velocity.x -= Mathf.Sign(_velocity.x) * Mathf.Clamp(friction * Mathf.Abs(_velocity.x), 0, Mathf.Abs(_velocity.x));
-            _velocity.y -= Mathf.Sign(_velocity.y) * Mathf.Clamp(friction * Mathf.Abs(_velocity.y), 0, Mathf.Abs(_velocity.y));
+            _velocity.x -= Mathf.Sign(_velocity.x) * Mathf.Clamp(friction * _weight * Mathf.Abs(_velocity.x), 0, Mathf.Abs(_velocity.x));
+            _velocity.y -= Mathf.Sign(_velocity.y) * Mathf.Clamp(friction * _weight * Mathf.Abs(_velocity.y), 0, Mathf.Abs(_velocity.y));
         }
 
         protected override void TickGrounded()

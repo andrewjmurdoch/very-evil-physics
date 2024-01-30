@@ -7,7 +7,7 @@ namespace VED.Physics
     public class PhysicsMaterial : ScriptableObject
     {
         public float Friction { get => _friction; set => _friction = value; }
-        [Range(0, 2)]
+        [Range(0, 10)]
         [SerializeField]
         private float _friction = 0f; // potential to slow a colliding object 
 
