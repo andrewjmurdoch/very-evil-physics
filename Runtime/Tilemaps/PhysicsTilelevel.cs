@@ -8,8 +8,18 @@ namespace VED.Physics
 {
     public partial class PhysicsTileLevel : TileLevel
     {
-        public Dictionary<string, PhysicsTileLayer> PhysicsTileLayers => _physicsTileLayers;
-        private Dictionary<string, PhysicsTileLayer> _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
+        public Dictionary<long, PhysicsTileLayer> PhysicsTileLayers => _physicsTileLayers;
+        private Dictionary<long, PhysicsTileLayer> _physicsTileLayers = new Dictionary<long, PhysicsTileLayer>();
+
+        new public Dictionary<char, List<PhysicsTileLevel>> NeighbourTileLevels => _neighbourTileLevels;
+        new protected Dictionary<char, List<PhysicsTileLevel>> _neighbourTileLevels = new Dictionary<char, List<PhysicsTileLevel>>()
+        {
+            { 'n', new List<PhysicsTileLevel>() },
+            { 'e', new List<PhysicsTileLevel>() },
+            { 's', new List<PhysicsTileLevel>() },
+            { 'w', new List<PhysicsTileLevel>() }
+        };
+
 
         public Cell[,] Cells => _cells;
         [SerializeField] protected Cell[,] _cells = null;
@@ -43,10 +53,26 @@ namespace VED.Physics
 
         public override void InitNeighbours(Level definition)
         {
-            base.InitNeighbours(definition);
+            PhysicsTileLevelManager physicsTilelevelManager = PhysicsTileLevelManager.Instance;
+
+            // set up neighbours
+            _neighbourTileLevels = new Dictionary<char, List<PhysicsTileLevel>>()
+            {
+                { 'n', new List<PhysicsTileLevel>() },
+                { 'e', new List<PhysicsTileLevel>() },
+                { 's', new List<PhysicsTileLevel>() },
+                { 'w', new List<PhysicsTileLevel>() }
+            };
+            foreach (NeighbourLevel neighbourLevel in definition.Neighbours)
+            {
+                if (!physicsTilelevelManager.TileLevels.ContainsKey(neighbourLevel.LevelIid)) continue;
+
+                if (physicsTilelevelManager.TileLevels[neighbourLevel.LevelIid] is PhysicsTileLevel physicsTilelevel)
+                    _neighbourTileLevels[neighbourLevel.Dir[0]].Add(physicsTilelevel);
+            }
 
             // set up collision tile layer neighbours
-            foreach (KeyValuePair<string, PhysicsTileLayer> collisionTilelayerKVP in _physicsTileLayers)
+            foreach (KeyValuePair<long, PhysicsTileLayer> collisionTileLayerKVP in _physicsTileLayers)
             {
                 Dictionary<char, List<PhysicsTileLayer>> physicsTileLayerNeighbours = new Dictionary<char, List<PhysicsTileLayer>>()
                 {
@@ -56,20 +82,20 @@ namespace VED.Physics
                     { 'w', new List<PhysicsTileLayer>() }
                 };
                 
-                foreach (KeyValuePair<char, List<TileLevel>> neighbourTilelevelKVP in _neighbourTileLevels)
+                foreach (KeyValuePair<char, List<PhysicsTileLevel>> neighbourTileLevelKVP in _neighbourTileLevels)
                 {
-                    foreach (TileLevel neighbourTilelevel in neighbourTilelevelKVP.Value)
+                    foreach (PhysicsTileLevel neighbourTilelevel in neighbourTileLevelKVP.Value)
                     {
                         if (neighbourTilelevel is PhysicsTileLevel neighbourPhysicsTilelevel)
                         {
-                            if (!neighbourPhysicsTilelevel.PhysicsTileLayers.ContainsKey(collisionTilelayerKVP.Key)) continue;
+                            if (!neighbourPhysicsTilelevel.PhysicsTileLayers.ContainsKey(collisionTileLayerKVP.Key)) continue;
 
-                            physicsTileLayerNeighbours[neighbourTilelevelKVP.Key].Add(neighbourPhysicsTilelevel.PhysicsTileLayers[collisionTilelayerKVP.Key]);
+                            physicsTileLayerNeighbours[neighbourTileLevelKVP.Key].Add(neighbourPhysicsTilelevel.PhysicsTileLayers[collisionTileLayerKVP.Key]);
                         }
                     }
                 }
                 
-                collisionTilelayerKVP.Value.InitNeighbours(physicsTileLayerNeighbours);
+                collisionTileLayerKVP.Value.InitNeighbours(physicsTileLayerNeighbours);
             }
 
         }
@@ -115,7 +141,7 @@ namespace VED.Physics
         protected override void InitTileLayers(Level definition)
         {
             _tileLayers = new Dictionary<string, TileLayer>();
-            _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
+            _physicsTileLayers = new Dictionary<long, PhysicsTileLayer>();
 
             // find all layers which are not entity layers
             List<LayerInstance> layerDefinitions = new List<LayerInstance>();
@@ -136,7 +162,7 @@ namespace VED.Physics
                 if (layerDefinitions[i].Identifier.ToUpper().Contains(PhysicsTileLayer.KEY))
                 {
                     PhysicsTileLayer physicsTilelayer = gameObject.AddComponent<PhysicsTileLayer>().Init(this, layerDefinitions[i], -i);
-                    _physicsTileLayers.Add(layerDefinitions[i].Iid, physicsTilelayer);
+                    _physicsTileLayers.Add(layerDefinitions[i].LayerDefUid, physicsTilelayer);
                     continue;
                 }
 
@@ -147,7 +173,7 @@ namespace VED.Physics
         protected override void InitTileLayersAsync(Level definition, int batchSize, Action callback)
         {
             _tileLayers = new Dictionary<string, TileLayer>();
-            _physicsTileLayers = new Dictionary<string, PhysicsTileLayer>();
+            _physicsTileLayers = new Dictionary<long, PhysicsTileLayer>();
 
             // find all layers which are not entity layers
             List<LayerInstance> layerDefinitions = new List<LayerInstance>();
@@ -178,7 +204,7 @@ namespace VED.Physics
                 {
                     gameObject.AddComponent<PhysicsTileLayer>().InitAsync(this, layerDefinitions[i], -index, batchSize, (PhysicsTileLayer physicsTileLayer) =>
                     {
-                        _physicsTileLayers.Add(layerDefinitions[index].Iid, physicsTileLayer);
+                        _physicsTileLayers.Add(layerDefinitions[index].LayerDefUid, physicsTileLayer);
                         Join();
                     });
                     continue;

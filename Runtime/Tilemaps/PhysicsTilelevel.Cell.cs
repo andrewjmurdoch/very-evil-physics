@@ -17,6 +17,5 @@ namespace VED.Physics
             [SerializeField] public List<PhysicsSolid> Solids = new List<PhysicsSolid>();
             [NonSerialized] public List<Cell> Neighbours = new List<Cell>();
         }
-
     }
 }
