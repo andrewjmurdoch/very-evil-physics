@@ -20,7 +20,8 @@ namespace VED.Physics
                 _spriteRenderer.sprite = definition.Sprite;
                 _spriteRenderer.sortingOrder = sortingOrder;
 
-                InitCollider(definition.PhysicsCollider);
+                for (int i = 0; i < definition.PhysicsColliderTypes.Count; i++)
+                    InitCollider(definition.PhysicsColliderTypes[i]);
 
                 _physicsMaterial = PhysicsManager.Instance.PhysicsMaterialMapper[definition.PhysicsMaterial];
 

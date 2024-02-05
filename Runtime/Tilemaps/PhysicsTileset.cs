@@ -48,17 +48,19 @@ namespace VED.Physics
             for (int i = 0; i < size; i++)
             {
                 Sprite sprite = spriteAtlas.GetSprite(name + '_' + i.ToString());
-                Enums.PhysicsColliderType physicsCollider = GetTileCollider(colliderEnumTagValues, i);
+                List<Enums.PhysicsColliderType> physicsColliderTypes = GetTileCollider(colliderEnumTagValues, i);
                 string physicsMaterial = GetTileMaterial(materialEnumTagValues, i);
 
-                _tiles[i] = new PhysicsTile().Init(sprite, physicsCollider, physicsMaterial);
+                _tiles[i] = new PhysicsTile().Init(sprite, physicsColliderTypes, physicsMaterial);
             }
 
             return this;
         }
 
-        private Enums.PhysicsColliderType GetTileCollider(List<EnumTagValue> enumTagValues, int ID)
+        private List<Enums.PhysicsColliderType> GetTileCollider(List<EnumTagValue> enumTagValues, int ID)
         {
+            List<Enums.PhysicsColliderType> physicsColliderTypes = new List<Enums.PhysicsColliderType>();
+
             foreach (EnumTagValue enumTagValue in enumTagValues)
             {
                 string name = enumTagValue.EnumValueId.Substring(enumTagValue.EnumValueId.IndexOf('_') + 1);
@@ -66,14 +68,12 @@ namespace VED.Physics
 
                 for (int i = 0; i < enumTagValue.TileIds.Count; i++)
                 {
-                    if (enumTagValue.TileIds[i] == ID)
-                    {
-                        return physicsColliderType;
-                    }
+                    if (enumTagValue.TileIds[i] != ID) continue;
+                    physicsColliderTypes.Add(physicsColliderType);
                 }
             }
 
-            return Enums.PhysicsColliderType.NONE;
+            return physicsColliderTypes;
         }
 
         private string GetTileMaterial(List<EnumTagValue> enumTagValues, int ID)
