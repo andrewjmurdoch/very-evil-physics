@@ -180,85 +180,77 @@ namespace VED.Physics
             _input = Mathf.Clamp(input, -1f, 1f);
 
             if (!_canMove || Mathf.Abs(_input) < _settings.MOVEMENT_THRESHOLD)
-            {
                 return;
-            }
 
             if (!_wallplantTimer.Complete)
             {
-                if (Mathf.Abs(_input) > _settings.WALLPLANT_EXIT_THRESHOLD && Mathf.Sign(_input) == -_wallplantSign)
-                {
-                    // if moving off of wallplant, stick for a delay period to allow aiming without falling off
-                    if (_wallplantExitTimer.Complete)
-                    {
-                        _wallplantExitTimer.Set(null, () =>
-                        {
-                            Unwallplant();
-                            _canInitialJump = false;
-                            _canLongJump = false;
-                        });
-                    }
-                }
-                else
-                {
-                    // if no longer moving off of wallplant, reset timer
-                    _wallplantExitTimer.Reset();
-                }
-
+                MoveWallplant();
                 return;
             }
 
-            float traction = Traction;
-
             if (Grounded && !_crouched)
             {
-                // move horizontally ([-1 -> 1] * clamp(speed, 0, max_velocity - velocity)) preventing addition past max velocity
-
-                float speed;
-                if (Mathf.Abs(_velocity.x) > 0 && Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
-                {
-                    speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
-                }
-                else
-                {
-                    speed = Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)));
-                }
-
-                _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
+                MoveGrounded();
                 return;
             }
 
             if (!Grounded)
             {
-                float speed;
-
-                if (_velocity.y > -_settings.JUMP_PEAK_THRESHOLD && _velocity.y < _settings.JUMP_PEAK_THRESHOLD)
-                {
-                    if (Mathf.Abs(_velocity.x) > 0 && Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
-                    {
-                        speed = Mathf.Clamp(_settings.JUMP_PEAK_MOVEMENT_SPEED, 0, (_settings.JUMP_PEAK_MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
-                    }
-                    else
-                    {
-                        speed = Mathf.Clamp(_settings.JUMP_PEAK_MOVEMENT_SPEED, 0, (_settings.JUMP_PEAK_MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)));
-                    }
-                }
-                else
-                {
-                    if (Mathf.Sign(_velocity.x) == Mathf.Sign(_input))
-                    {
-                        speed = Mathf.Clamp(_settings.AIR_MOVEMENT_SPEED, 0, (_settings.AIR_MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
-                    }
-                    else
-                    {
-                        speed = Mathf.Clamp(_settings.AIR_MOVEMENT_SPEED, 0, (_settings.AIR_MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)));
-                    }
-                }
-
-                // move horizontally with air control value & jump peak multiplier
-                _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
+                MoveUngrounded();
                 return;
             }
+        }
+
+        private void MoveWallplant()
+        {
+            if (Mathf.Abs(_input) <= _settings.WALLPLANT_EXIT_THRESHOLD || Mathf.Sign(_input) != -_wallplantSign)
+            {
+                // if no longer moving off of wallplant, reset wallplant exit timer
+                _wallplantExitTimer.Reset();
+                return;
+            }
+
+            // if timer is already set, do not reset it
+            if (!_wallplantExitTimer.Complete) return;
+
+            // if moving off of wallplant, stick for a delay period to allow aiming without falling off
+            _wallplantExitTimer.Set(null, () =>
+            {
+                Unwallplant();
+                _canInitialJump = false;
+                _canLongJump = false;
+            });
+        }
+
+        private void MoveGrounded()
+        {
+            float traction = Traction;
+            bool turning = Mathf.Abs(_velocity.x) > 0.0f && Mathf.Sign(_velocity.x) != Mathf.Sign(_input);
+            float speed = turning
+                ? Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)))
+                : Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
+
+            // move horizontally ([-1 -> 1] * clamp(speed, 0, max_velocity - velocity)) preventing addition past max velocity
+            _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
+        }
+
+        private void MoveUngrounded()
+        {
+            float traction = Traction;
+
+            bool peak = _velocity.y > -_settings.JUMP_PEAK_THRESHOLD
+                     && _velocity.y < _settings.JUMP_PEAK_THRESHOLD;
+            float multiplier = peak
+                ? _settings.JUMP_PEAK_MULTIPLIER
+                : 1.0f;
+
+            bool turning = Mathf.Abs(_velocity.x) > 0.0f && Mathf.Sign(_velocity.x) != Mathf.Sign(_input);
+            float speed = turning
+                ? Mathf.Clamp((_settings.AIR_MOVEMENT_SPEED * multiplier), 0.0f, ((_settings.AIR_MOVEMENT_MAX_SPEED_TURNING * multiplier) + Mathf.Abs(_velocity.x)))
+                : Mathf.Clamp((_settings.AIR_MOVEMENT_SPEED * multiplier), 0.0f, ((_settings.AIR_MOVEMENT_MAX_SPEED * multiplier) - Mathf.Abs(_velocity.x)));
+
+            // move horizontally with air control value & jump peak multiplier
+            _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
         }
 
         public void Crouch(bool input)

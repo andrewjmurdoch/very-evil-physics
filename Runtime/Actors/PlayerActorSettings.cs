@@ -21,9 +21,7 @@ namespace VED.Physics
         public float AIR_MOVEMENT_SPEED;
         public float AIR_MOVEMENT_MAX_SPEED;
         public float AIR_MOVEMENT_MAX_SPEED_TURNING;
-        public float JUMP_PEAK_MOVEMENT_SPEED;
-        public float JUMP_PEAK_MOVEMENT_MAX_SPEED;
-        public float JUMP_PEAK_MOVEMENT_MAX_SPEED_TURNING;
+        public float JUMP_PEAK_MULTIPLIER;
         public float JUMP_PEAK_THRESHOLD;
         public float WALLPLANT_ENTRY_SPEED;
         public float WALLPLANT_SLIP_SPEED;
