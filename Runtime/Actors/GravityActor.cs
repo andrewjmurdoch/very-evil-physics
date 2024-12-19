@@ -7,21 +7,35 @@ namespace VED.Physics
 {
     public class GravityActor : SlideActor
     {
-        [Range(-1, 1)]
-        [SerializeField] protected float _gravity = 1f;
+        public float Gravity
+        {
+            get => _gravity;
+            set => _gravity = value;
+        }
+        [Range(-1, 1), SerializeField] protected float _gravity = 1f;
 
-        [SerializeField] protected bool _groundEnabled = true;
+        public bool Groundable
+        {
+            get => _groundable;
+            set => _groundable = value;
+        }
+        [SerializeField] protected bool _groundable = true;
+
         public bool Grounded => _groundContact != null;
 #pragma warning disable CS0414
-        [SerializeField, ReadOnly] private bool _grounded = false;
+        [SerializeField, ReadOnly] protected bool _grounded = false;
 #pragma warning restore CS0414
 
         [SerializeField] protected PhysicsCollider _groundCollider = null;
 
-        public PhysicsContact GroundContact => _groundContact;
+        public PhysicsContact GroundContact
+        {
+            get => _groundContact;
+            set => _groundContact = value;
+        }
         protected PhysicsContact _groundContact = null;
 
-        protected float Friction
+        public float Friction
         {
             get
             {
@@ -29,7 +43,7 @@ namespace VED.Physics
             }
         }
 
-        protected float Traction
+        public float Traction
         {
             get
             {
@@ -37,7 +51,7 @@ namespace VED.Physics
             }
         }
 
-        protected float Elasticity
+        public float Elasticity
         {
             get
             {
@@ -83,66 +97,66 @@ namespace VED.Physics
         #region Tick
         public override void FixedTick()
         {
-            TickNearby();
-            TickMoveable();
-            TickSliding();
-            TickGrounded();
-            TickGravity();
-            TickFriction();
-            TickInheritedMovement();
-            TickVelocity(_velocity.x, _velocity.y);
+            FixedTickNearby();
+            FixedTickMoveable();
+            FixedTickSliding();
+            FixedTickGrounded();
+            FixedTickGravity();
+            FixedTickFriction();
+            FixedTickInheritedMovement();
+            FixedTickVelocity(_velocityHor, _velocityVer);
         }
 
         public override void FixedSubTick()
         {
-            SubTickMove(CollideHorizontally, CollideVertically);
+            FixedSubTickMove(CollideHorizontally, CollideVertically);
         }
 
-        protected virtual void TickInheritedMovement()
+        public virtual void FixedTickInheritedMovement()
         {
             if (_groundContact != null && _groundContact.RemoteObject is PhysicsActor actor)
             {
-                if (Mathf.Abs(actor.Velocity.x) > Mathf.Abs(_velocity.x))
+                if (Mathf.Abs(actor.Velocity.x) > Mathf.Abs(_velocityHor))
                 {
                     float strength = Mathf.Clamp01(actor.Strength / _weight);
-                    float difference = actor.Velocity.x - _velocity.x;
+                    float difference = actor.Velocity.x - _velocityHor;
 
-                    _velocity.x += strength * difference;
+                    _velocityHor += strength * difference;
                 }
 
-                if (_groundContact.RemoteObject.Velocity.y > 0 && _groundContact.RemoteObject.Velocity.y > _velocity.y)
+                if (_groundContact.RemoteObject.Velocity.y > 0 && _groundContact.RemoteObject.Velocity.y > _velocityVer)
                 {
                     float strength = Mathf.Clamp01(actor.Strength / _weight);
-                    float difference = actor.Velocity.y - _velocity.y;
+                    float difference = actor.Velocity.y - _velocityVer;
 
-                    _velocity.y += strength * difference;
+                    _velocityVer += strength * difference;
                 }
             }
         }
 
-        protected virtual void TickGravity()
+        public virtual void FixedTickGravity()
         {
             // reduce y velocity by (weight x gravity)
             float applied = _slidingUp ? 0 : 1;
-            _velocity.y -= applied * (_weight * _gravity * PhysicsManager.Instance.Gravity);
+            _velocityVer -= applied * (_weight * _gravity * PhysicsManager.Instance.Gravity);
         }
 
-        protected virtual void TickFriction()
+        public virtual void FixedTickFriction()
         {
             float friction = Friction * Time.fixedDeltaTime;
 
             // apply horizontal friction (velocity -= sign x clamp(weight x friction x velocity, 0, velocity))
             // never remove more than (velocity) as this will cause the actor to move in the opposite direction
-            _velocity.x -= Mathf.Sign(_velocity.x) * Mathf.Clamp((GetTotalWeight() * friction * Mathf.Abs(_velocity.x)), 0, Mathf.Abs(_velocity.x));
+            _velocityHor -= Mathf.Sign(_velocityHor) * Mathf.Clamp((GetTotalWeight() * friction * Mathf.Abs(_velocityHor)), 0, Mathf.Abs(_velocityHor));
 
             // apply vertical friction (velocity -= sign x clamp(weight x friction x velocity, 0, velocity))
             // never remove more than (velocity) as this will cause the actor to move in the opposite direction
-            _velocity.y -= Mathf.Sign(_velocity.y) * Mathf.Clamp((_weight * friction * Mathf.Abs(_velocity.y)), 0, Mathf.Abs(_velocity.y));
+            _velocityVer -= Mathf.Sign(_velocityVer) * Mathf.Clamp((_weight * friction * Mathf.Abs(_velocityVer)), 0, Mathf.Abs(_velocityVer));
         }
 
-        protected virtual void TickGrounded()
+        public virtual void FixedTickGrounded()
         {
-            if (!_groundEnabled) return;
+            if (!_groundable) return;
 
             PhysicsContact contact = null;
 
@@ -158,7 +172,7 @@ namespace VED.Physics
                 }
             }
 
-            if (!Grounded && contact != null && _velocity.y <= 0)
+            if (!Grounded && contact != null && _velocityVer <= 0)
             {
                 // ground actor
                 Ground(contact);
@@ -172,9 +186,9 @@ namespace VED.Physics
         #endregion
 
         #region Ground
-        protected virtual void Ground(PhysicsContact ground)
+        public virtual void Ground(PhysicsContact ground)
         {
-            if (!_groundEnabled) return;
+            if (!_groundable) return;
 
             // detach current ground if not null
             Unground();
@@ -199,24 +213,25 @@ namespace VED.Physics
         #endregion
 
         #region Collision
-        protected virtual void CollideHorizontally(List<PhysicsContact> contacts)
+        public virtual void CollideHorizontally(List<PhysicsContact> contacts)
         {
             BounceHorizontally(contacts);
         }
 
-        protected virtual void CollideVertically(List<PhysicsContact> contacts)
+        public virtual void CollideVertically(List<PhysicsContact> contacts)
         {
             if (SlidingVertically)
             {
-                _velocity = Vector2.zero;
+                _velocityHor = 0f;
+                _velocityVer = 0f;
             }
 
             BounceVertically(contacts);
         }
 
-        protected void BounceHorizontally(List<PhysicsContact> collisions)
+        public void BounceHorizontally(List<PhysicsContact> collisions)
         {
-            float sign = Mathf.Sign(_velocity.x);
+            float sign = Mathf.Sign(_velocityHor);
             float elasticity = Elasticity;
 
             foreach (PhysicsContact collision in collisions)
@@ -227,16 +242,16 @@ namespace VED.Physics
                 }
             }
 
-            _velocity.x += -sign * Mathf.Abs(_velocity.x * elasticity);
+            _velocityHor += -sign * Mathf.Abs(_velocityHor * elasticity);
         }
 
-        protected void BounceVertically(List<PhysicsContact> collisions)
+        public void BounceVertically(List<PhysicsContact> collisions)
         {
-            float sign = Mathf.Sign(_velocity.y);
+            float sign = Mathf.Sign(_velocityVer);
 
             if (sign == -1)
             {
-                TickGrounded();
+                FixedTickGrounded();
             }
 
             float elasticity = Elasticity;
@@ -249,7 +264,7 @@ namespace VED.Physics
                 }
             }
 
-            _velocity.y = -sign * Mathf.Abs(_velocity.y * elasticity);
+            _velocityVer = -sign * Mathf.Abs(_velocityVer * elasticity);
         }
         #endregion
 

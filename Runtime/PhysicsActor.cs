@@ -12,15 +12,40 @@ namespace VED.Physics
 
         public int Index { get; set; } = 0;
 
-        public float Weight => _weight;
+        public float Weight
+        {
+            get => _weight;
+            set => _weight = value;
+        }
         [SerializeField] protected float _weight = 1f;
 
-        public float Strength => _strength;
+        public float Strength
+        {
+            get => _strength;
+            set => _strength = value;
+        }
         [SerializeField] protected float _strength = 1f;
 
-        public bool Pushable => _pushable;
+        public bool Pushable
+        {
+            get => _pushable;
+            set => _pushable = value;
+        }
         [SerializeField] protected bool _pushable = true;
+
+        public bool CanPush
+        {
+            get => _canPush;
+            set => _canPush = value;
+        }
         [SerializeField] protected bool _canPush = true;
+
+        public bool Immoveable
+        {
+            get => _immoveable;
+            set => _immoveable = value;
+        }
+        [SerializeField] protected bool _immoveable = false;
 
         public Dictionary<float, bool> MoveableHorizontally = new Dictionary<float, bool>()
         {
@@ -42,9 +67,6 @@ namespace VED.Physics
         [SerializeField, ReadOnly] bool _moveableUp   = true;
         [SerializeField, ReadOnly] bool _moveableDown = true;
 
-        public bool Immoveable => _immoveable;
-        protected bool _immoveable = false;
-
         protected PhysicsTileLevel.Cell _cell = null;
         protected List<PhysicsObject> _nearbyActors = new List<PhysicsObject>();
         protected List<PhysicsObject> _nearbySolids = new List<PhysicsObject>();
@@ -56,7 +78,7 @@ namespace VED.Physics
             Init();
         }
 
-        protected void OnDisable()
+        public virtual void OnDisable()
         {
             Deinit();
         }
@@ -66,7 +88,7 @@ namespace VED.Physics
             base.Init();
 
             Spawned?.Invoke(this);
-            TickNearby();
+            FixedTickNearby();
         }
 
         public override void Deinit()
@@ -80,17 +102,17 @@ namespace VED.Physics
 
         public virtual void FixedTick()
         {
-            TickNearby();
-            TickMoveable();
-            TickVelocity(_velocity.x, _velocity.y);
+            FixedTickNearby();
+            FixedTickMoveable();
+            FixedTickVelocity(_velocityHor, _velocityVer);
         }
 
         public virtual void FixedSubTick()
         {
-            SubTickMove();
+            FixedSubTickMove();
         }
 
-        public virtual void SubTickMove(Action<List<PhysicsContact>> CollideHorizontally = null, Action<List<PhysicsContact>> CollideVertically = null)
+        public virtual void FixedSubTickMove(Action<List<PhysicsContact>> CollideHorizontally = null, Action<List<PhysicsContact>> CollideVertically = null)
         {
             double x = _xRounded + _xRemainder;
             double y = _yRounded + _yRemainder;
@@ -104,7 +126,7 @@ namespace VED.Physics
             if (_immoveable) return;
             _immoveable = true;
 
-            TickNearby();
+            FixedTickNearby();
 
             if (Math.Abs(_xRounded) > 0)
             {
@@ -131,14 +153,14 @@ namespace VED.Physics
         {
             if (_immoveable) return;
 
-            TickVelocity(x, y);
+            FixedTickVelocity(x, y);
 
             _immoveable = true;
 
             float iterations = 0;
             while (iterations < MAX_MOVEMENT_ITERATIONS && (Math.Abs(_xRounded) > 0 || Math.Abs(_yRounded) > 0))
             {
-                TickNearby();
+                FixedTickNearby();
 
                 if (Math.Abs(_xRounded) > 0)
                 {
@@ -167,7 +189,7 @@ namespace VED.Physics
             _yRounded = 0;
         }
 
-        protected void TickNearby()
+        public void FixedTickNearby()
         {
             _nearby.Clear();
 
@@ -248,7 +270,7 @@ namespace VED.Physics
             }
         }
 
-        protected void TickMoveable()
+        public void FixedTickMoveable()
         {
             MoveableHorizontally[ 1] = UpdateMoveableHorizontally( 1);
             MoveableHorizontally[-1] = UpdateMoveableHorizontally(-1);
@@ -261,7 +283,7 @@ namespace VED.Physics
             _moveableDown  = MoveableVertically  [-1];
         }
 
-        protected void TickVelocity(double x, double y)
+        public void FixedTickVelocity(double x, double y)
         {
             _xRemainder += x;
             _yRemainder += y;
@@ -271,7 +293,7 @@ namespace VED.Physics
             _yRemainder -= _yRounded;
         }
 
-        protected virtual bool UpdateMoveableHorizontally(int sign)
+        public virtual bool UpdateMoveableHorizontally(int sign)
         {
             // physics actors are non-moveable when they are attempting to move in any direction in which they collide with a solid, immoveable object, or currently non-moveable object
 
@@ -295,7 +317,7 @@ namespace VED.Physics
             return true;
         }
 
-        protected virtual bool UpdateMoveableVertically(int sign)
+        public virtual bool UpdateMoveableVertically(int sign)
         {
             // physics actors are non-moveable when they are attempting to move in any direction in which they collide with a solid, immoveable object, or currently non-moveable object
 
@@ -319,7 +341,7 @@ namespace VED.Physics
             return true;
         }
 
-        protected virtual bool MoveHorizontally(float sign, Action<List<PhysicsContact>> CollideHorizontally)
+        public virtual bool MoveHorizontally(float sign, Action<List<PhysicsContact>> CollideHorizontally)
         {
             List<PhysicsContact> solids = CollidingHorizontally(sign, _nearbySolids);
             if (solids.Count > 0)
@@ -344,7 +366,7 @@ namespace VED.Physics
             return true;
         }
 
-        protected virtual bool MoveVertically(float sign, Action<List<PhysicsContact>> CollideVertically)
+        public virtual bool MoveVertically(float sign, Action<List<PhysicsContact>> CollideVertically)
         {
             List<PhysicsContact> solids = CollidingVertically(sign, _nearbySolids);
             if (solids.Count > 0)
@@ -369,7 +391,7 @@ namespace VED.Physics
             return true;
         }
 
-        protected bool PushActorsHorizontally(List<PhysicsContact> actors, float sign, Action<List<PhysicsContact>> CollideHorizontally)
+        public bool PushActorsHorizontally(List<PhysicsContact> actors, float sign, Action<List<PhysicsContact>> CollideHorizontally)
         {
             // validate
             foreach (PhysicsContact contact in actors)
@@ -401,7 +423,7 @@ namespace VED.Physics
             return true;
         }
 
-        protected bool PushActorsVertically(List<PhysicsContact> actors, float sign, Action<List<PhysicsContact>> CollideVertically)
+        public bool PushActorsVertically(List<PhysicsContact> actors, float sign, Action<List<PhysicsContact>> CollideVertically)
         {
             // validate
             foreach (PhysicsContact contact in actors)
@@ -446,7 +468,8 @@ namespace VED.Physics
 
         public virtual void ApplyImpulse(Vector2 impulse)
         {
-            _velocity += impulse;
+            _velocityHor += impulse.x;
+            _velocityVer += impulse.y;
         }
         
         public float GetTotalWeight(List<PhysicsActor> counted = null)

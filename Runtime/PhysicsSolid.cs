@@ -102,7 +102,7 @@ namespace VED.Physics
             }
         }
 
-        public void Move(double x = 0, double y = 0)
+        public void FixedTickMove(double x = 0, double y = 0)
         {
             if (Math.Abs(x) > 0 || Math.Abs(y) > 0) UpdateNearby();
 

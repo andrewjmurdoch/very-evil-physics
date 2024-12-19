@@ -8,11 +8,26 @@ namespace VED.Physics
     public abstract class PhysicsObject : MonoBehaviour
     {
         // the physics object's default physics material
-        public PhysicsMaterial PhysicsMaterial => _physicsMaterial;
+        public PhysicsMaterial PhysicsMaterial 
+        { 
+            get => _physicsMaterial;
+            set => _physicsMaterial = value;
+        }
         [SerializeField] protected PhysicsMaterial _physicsMaterial = null;
 
-        public Vector2 Velocity { get => _velocity; set => _velocity = value; }
-        [SerializeField, ReadOnly] protected Vector2 _velocity = new Vector2(0, 0);
+        public Vector2 Velocity => new Vector2((float)_velocityHor, (float)_velocityVer);
+        public float VelocityHor
+        {
+            get => _velocityHor;
+            set => _velocityHor = value;
+        }
+        [SerializeField, ReadOnly] protected float _velocityHor = 0;
+        public float VelocityVer
+        {
+            get => _velocityVer;
+            set => _velocityVer = value;
+        }
+        [SerializeField, ReadOnly] protected float _velocityVer = 0;
 
         // this physics object's PhysicsColliders
         public List<PhysicsCollider> Colliders => _colliders;

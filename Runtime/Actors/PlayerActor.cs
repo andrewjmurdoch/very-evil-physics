@@ -52,23 +52,23 @@ namespace VED.Physics
         #region Tick
         public override void FixedTick()
         {
-            TickNearby();
-            TickMoveable();
-            TickSliding();
-            TickGrounded();
-            TickGravity();
-            TickFriction();
-            TickInheritedMovement();
-            TickWallplant();
-            TickVelocity(_velocity.x, _velocity.y);
+            FixedTickNearby();
+            FixedTickMoveable();
+            FixedTickSliding();
+            FixedTickGrounded();
+            FixedTickGravity();
+            FixedTickFriction();
+            FixedTickInheritedMovement();
+            FixedTickWallplant();
+            FixedTickVelocity(_velocityHor, _velocityVer);
         }
 
         public override void FixedSubTick()
         {
-            SubTickMove(CollideHorizontally, CollideVertically);
+            FixedSubTickMove(CollideHorizontally, CollideVertically);
         }
 
-        protected override void TickFriction()
+        public override void FixedTickFriction()
         {
             // find current friction
             float friction = Friction * Time.fixedDeltaTime;
@@ -78,13 +78,13 @@ namespace VED.Physics
 
             // apply horizontal friction (velocity -= sign * clamp(friction * velocity, 0, velocity))
             // never remove more than (velocity) as this will cause the actor to move in the opposite direction
-            _velocity.x -= Mathf.Sign(_velocity.x) * Mathf.Clamp(friction * _weight * Mathf.Abs(_velocity.x), 0, Mathf.Abs(_velocity.x));
-            _velocity.y -= Mathf.Sign(_velocity.y) * Mathf.Clamp(friction * _weight * Mathf.Abs(_velocity.y), 0, Mathf.Abs(_velocity.y));
+            _velocityHor -= Mathf.Sign(_velocityHor) * Mathf.Clamp(friction * _weight * Mathf.Abs(_velocityHor), 0, Mathf.Abs(_velocityHor));
+            _velocityVer -= Mathf.Sign(_velocityVer) * Mathf.Clamp(friction * _weight * Mathf.Abs(_velocityVer), 0, Mathf.Abs(_velocityVer));
         }
 
-        protected override void TickGrounded()
+        public override void FixedTickGrounded()
         {
-            if (!_groundEnabled) return;
+            if (!_groundable) return;
 
             PhysicsContact GetContact()
             {
@@ -104,7 +104,7 @@ namespace VED.Physics
             }
             PhysicsContact contact = GetContact();
 
-            if (!Grounded && contact != null && _velocity.y <= 0)
+            if (!Grounded && contact != null && _velocityVer <= 0)
             {
                 // ground actor
                 Ground(contact);
@@ -121,7 +121,7 @@ namespace VED.Physics
             }
         }
 
-        protected virtual void TickWallplant()
+        public virtual void FixedTickWallplant()
         {
             if (!Wallplanted) return;
 
@@ -134,7 +134,7 @@ namespace VED.Physics
             if (!_wallplantTimer.Complete)
             {
                 float amount = Easing.Ease(Easing.Shape.EXPO, Easing.Extent.OUT, 0f, 1f, _wallplantTimer.Elapsed);
-                _velocity.y = -_settings.WALLPLANT_SLIP_SPEED * amount;
+                _velocityVer = -_settings.WALLPLANT_SLIP_SPEED * amount;
                 return;
             }
         }
@@ -143,7 +143,7 @@ namespace VED.Physics
         #region Ground
         protected override void Ground(PhysicsContact ground)
         {
-            if (!_groundEnabled) return;
+            if (!_groundable) return;
 
             base.Ground(ground);
 
@@ -175,7 +175,7 @@ namespace VED.Physics
         #endregion
 
         #region Move
-        public void Move(float input)
+        public void TickMove(float input)
         {
             _input = Mathf.Clamp(input, -1f, 1f);
 
@@ -184,24 +184,24 @@ namespace VED.Physics
 
             if (!_wallplantTimer.Complete)
             {
-                MoveWallplant();
+                TickMoveWallplant();
                 return;
             }
 
             if (Grounded && !_crouched)
             {
-                MoveGrounded();
+                TickMoveGrounded();
                 return;
             }
 
             if (!Grounded)
             {
-                MoveUngrounded();
+                TickMoveUngrounded();
                 return;
             }
         }
 
-        private void MoveWallplant()
+        private void TickMoveWallplant()
         {
             if (Mathf.Abs(_input) <= _settings.WALLPLANT_EXIT_THRESHOLD || Mathf.Sign(_input) != -_wallplantSign)
             {
@@ -222,35 +222,35 @@ namespace VED.Physics
             });
         }
 
-        private void MoveGrounded()
+        private void TickMoveGrounded()
         {
             float traction = Traction;
-            bool turning = Mathf.Abs(_velocity.x) > 0.0f && Mathf.Sign(_velocity.x) != Mathf.Sign(_input);
+            bool turning = Mathf.Abs(_velocityHor) > 0.0f && Mathf.Sign(_velocityHor) != Mathf.Sign(_input);
             float speed = turning
-                ? Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocity.x)))
-                : Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocity.x)));
+                ? Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED_TURNING + Mathf.Abs(_velocityHor)))
+                : Mathf.Clamp(_settings.MOVEMENT_SPEED, 0, (_settings.MOVEMENT_MAX_SPEED - Mathf.Abs(_velocityHor)));
 
             // move horizontally ([-1 -> 1] * clamp(speed, 0, max_velocity - velocity)) preventing addition past max velocity
-            _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
+            _velocityHor += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
         }
 
-        private void MoveUngrounded()
+        private void TickMoveUngrounded()
         {
             float traction = Traction;
 
-            bool peak = _velocity.y > -_settings.JUMP_PEAK_THRESHOLD
-                     && _velocity.y < _settings.JUMP_PEAK_THRESHOLD;
+            bool peak = _velocityVer > -_settings.JUMP_PEAK_THRESHOLD
+                     && _velocityVer < _settings.JUMP_PEAK_THRESHOLD;
             float multiplier = peak
                 ? _settings.JUMP_PEAK_MULTIPLIER
                 : 1.0f;
 
-            bool turning = Mathf.Abs(_velocity.x) > 0.0f && Mathf.Sign(_velocity.x) != Mathf.Sign(_input);
+            bool turning = Mathf.Abs(_velocityHor) > 0.0f && Mathf.Sign(_velocityHor) != Mathf.Sign(_input);
             float speed = turning
-                ? Mathf.Clamp((_settings.AIR_MOVEMENT_SPEED * multiplier), 0.0f, ((_settings.AIR_MOVEMENT_MAX_SPEED_TURNING * multiplier) + Mathf.Abs(_velocity.x)))
-                : Mathf.Clamp((_settings.AIR_MOVEMENT_SPEED * multiplier), 0.0f, ((_settings.AIR_MOVEMENT_MAX_SPEED * multiplier) - Mathf.Abs(_velocity.x)));
+                ? Mathf.Clamp((_settings.AIR_MOVEMENT_SPEED * multiplier), 0.0f, ((_settings.AIR_MOVEMENT_MAX_SPEED_TURNING * multiplier) + Mathf.Abs(_velocityHor)))
+                : Mathf.Clamp((_settings.AIR_MOVEMENT_SPEED * multiplier), 0.0f, ((_settings.AIR_MOVEMENT_MAX_SPEED * multiplier) - Mathf.Abs(_velocityHor)));
 
             // move horizontally with air control value & jump peak multiplier
-            _velocity.x += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
+            _velocityHor += _input * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * speed * Time.deltaTime;
         }
 
         public void Crouch(bool input)
@@ -296,14 +296,14 @@ namespace VED.Physics
                     _canWallplant = true;
                     _canLongJump = false;
 
-                    _velocity.x = -_wallplantSign * _settings.WALLPLANT_JUMP_SPEED_HORIZONTAL * traction * Mathf.Clamp01(_strength / GetTotalWeight());
-                    _velocity.y = _settings.WALLPLANT_JUMP_SPEED_VERTICAL * traction * Mathf.Clamp01(_strength / GetTotalWeight());
+                    _velocityHor = -_wallplantSign * _settings.WALLPLANT_JUMP_SPEED_HORIZONTAL * traction * Mathf.Clamp01(_strength / GetTotalWeight());
+                    _velocityVer = _settings.WALLPLANT_JUMP_SPEED_VERTICAL * traction * Mathf.Clamp01(_strength / GetTotalWeight());
 
                     return;
                 }
 
-                _velocity.x += (_settings.JUMP_SPEED * _settings.JUMP_HORIZONTAL_FRACTION) * _input * traction * Mathf.Clamp01(_strength / GetTotalWeight());
-                _velocity.y = _settings.JUMP_SPEED * traction * Mathf.Clamp01(_strength / GetTotalWeight());
+                _velocityHor += (_settings.JUMP_SPEED * _settings.JUMP_HORIZONTAL_FRACTION) * _input * traction * Mathf.Clamp01(_strength / GetTotalWeight());
+                _velocityVer = _settings.JUMP_SPEED * traction * Mathf.Clamp01(_strength / GetTotalWeight());
                 return;
             }
 
@@ -328,14 +328,14 @@ namespace VED.Physics
             if (time >= _settings.LONG_JUMP_START_TIME && time <= _settings.LONG_JUMP_END_TIME)
             {
                 float traction = Traction;
-                _velocity.y += _settings.LONG_JUMP_SPEED * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * Time.deltaTime;
+                _velocityVer += _settings.LONG_JUMP_SPEED * traction * Mathf.Clamp01(_strength / GetTotalWeight()) * Time.deltaTime;
             }
 
             // update long jump time
             _longJumpTime = time;
         }
 
-        protected bool ValidBankedJump(out PhysicsContact ground, List<PhysicsContact> contacts)
+        public bool ValidBankedJump(out PhysicsContact ground, List<PhysicsContact> contacts)
         {
             foreach (PhysicsContact contact in contacts)
             {
@@ -352,18 +352,19 @@ namespace VED.Physics
         #endregion
 
         #region Wallplant
-        protected void Wallplant()
+        public void Wallplant()
         {
             _canWallplant = false;
             _canLongJump = false;
             _canInitialJump = true;
-            _velocity = Vector2.zero;
+            _velocityHor = 0f;
+            _velocityVer = 0f;
 
             _wallplantTimer.Set(null, Unwallplant);
             _wallplantExitTimer.Reset();
         }
 
-        protected void Unwallplant()
+        public void Unwallplant()
         {
             _canWallplant = false;
             _canInitialJump = false;
@@ -372,7 +373,7 @@ namespace VED.Physics
             _wallplantExitTimer.Reset();
         }
 
-        protected bool ValidWallplant(out float wallplantSign, List<PhysicsContact> contacts)
+        public bool ValidWallplant(out float wallplantSign, List<PhysicsContact> contacts)
         {
             wallplantSign = 1f;
             if (!_wallplantEnabled) return false;
@@ -387,7 +388,7 @@ namespace VED.Physics
             return false;
         }
 
-        protected bool ValidWallplant(out float wallplantSign, List<PhysicsObject> remotes)
+        public bool ValidWallplant(out float wallplantSign, List<PhysicsObject> remotes)
         {
             wallplantSign = 1f;
 
@@ -402,7 +403,7 @@ namespace VED.Physics
             return false;
         }
 
-        protected bool ValidWallplant(out float wallplantSign, PhysicsObject remote)
+        public bool ValidWallplant(out float wallplantSign, PhysicsObject remote)
         {
             float sign = Mathf.Sign((remote.transform.position - Transform.position).normalized.x);
 
@@ -426,9 +427,9 @@ namespace VED.Physics
         #endregion
 
         #region Collision
-        protected override void CollideHorizontally(List<PhysicsContact> contacts)
+        public override void CollideHorizontally(List<PhysicsContact> contacts)
         {
-            if (_canWallplant && _velocity.y <= _settings.WALLPLANT_ENTRY_SPEED && !Grounded && !SlidingVertically)
+            if (_canWallplant && _velocityVer <= _settings.WALLPLANT_ENTRY_SPEED && !Grounded && !SlidingVertically)
             {
                 if (ValidWallplant(out _wallplantSign, contacts))
                 {
@@ -440,7 +441,7 @@ namespace VED.Physics
             base.CollideHorizontally(contacts);
         }
 
-        protected override void CollideVertically(List<PhysicsContact> contacts)
+        public override void CollideVertically(List<PhysicsContact> contacts)
         {
             if (!_jumpBankTimer.Complete && ValidBankedJump(out PhysicsContact ground, contacts))
             {
