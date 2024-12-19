@@ -141,7 +141,7 @@ namespace VED.Physics
         #endregion
 
         #region Ground
-        protected override void Ground(PhysicsContact ground)
+        public override void Ground(PhysicsContact ground)
         {
             if (!_groundable) return;
 
