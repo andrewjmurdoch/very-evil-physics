@@ -25,6 +25,8 @@ namespace VED.Physics
             set => _strength = value;
         }
         [SerializeField] protected float _strength = 1f;
+        public float StrengthByWeight => _strength / _weight;
+        public float StrengthByTotalWeight => _strength / GetTotalWeight();
 
         public bool Pushable
         {

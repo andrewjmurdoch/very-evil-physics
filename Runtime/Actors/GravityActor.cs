@@ -26,6 +26,7 @@ namespace VED.Physics
         [SerializeField, ReadOnly] protected bool _grounded = false;
 #pragma warning restore CS0414
 
+        public PhysicsCollider GroundCollider => _groundCollider;
         [SerializeField] protected PhysicsCollider _groundCollider = null;
 
         public PhysicsContact GroundContact

@@ -15,7 +15,7 @@ namespace VED.Physics
         }
         [SerializeField] protected PhysicsMaterial _physicsMaterial = null;
 
-        public Vector2 Velocity => new Vector2((float)_velocityHor, (float)_velocityVer);
+        public Vector2 Velocity => new Vector2(_velocityHor, _velocityVer);
         public float VelocityHor
         {
             get => _velocityHor;
