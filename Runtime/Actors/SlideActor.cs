@@ -144,7 +144,7 @@ namespace VED.Physics
             bool OneEdge(out float amount)
             {
                 gradient = edges[0].Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideUpConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideUpConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Bottom < edges[0].Bottom)
                     return collision.LocalCollider.Bottom - edges[0].Bottom <= _slideSettings.MaxSlideUpDist;
@@ -168,7 +168,7 @@ namespace VED.Physics
                 }
 
                 gradient = (collision.LocalCollider.Bottom < edgeTop.Bottom) ? edgeBottom.Gradient : edgeTop.Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideUpConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideUpConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Bottom < edgeBottom.Bottom)
                     return collision.LocalCollider.Bottom - edgeBottom.Bottom <= _slideSettings.MaxSlideUpDist;
@@ -289,7 +289,7 @@ namespace VED.Physics
             bool OneEdge(out float amount)
             {
                 gradient = edges[0].Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideDownConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideDownConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Top > edges[0].Top)
                     return collision.LocalCollider.Top - edges[0].Top <= _slideSettings.MaxSlideDownDist;
@@ -313,7 +313,7 @@ namespace VED.Physics
                 }
 
                 gradient = (collision.LocalCollider.Top > edgeBottom.Top) ? edgeTop.Gradient : edgeBottom.Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideDownConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideDownConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Top > edgeTop.Top)
                     return collision.LocalCollider.Top - edgeTop.Top <= _slideSettings.MaxSlideDownDist;
@@ -433,7 +433,7 @@ namespace VED.Physics
             bool OneEdge(out float amount)
             {
                 gradient = edges[0].Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideLeftConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideLeftConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Right > edges[0].Right)
                     return collision.LocalCollider.Right - edges[0].Right <= _slideSettings.MaxSlideLeftDist;
@@ -457,7 +457,7 @@ namespace VED.Physics
                 }
 
                 gradient = (collision.LocalCollider.Right > edgeLeft.Right) ? edgeRight.Gradient : edgeLeft.Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideLeftConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideLeftConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Right > edgeRight.Right)
                     return collision.LocalCollider.Right - edgeRight.Right <= _slideSettings.MaxSlideLeftDist;
@@ -577,7 +577,7 @@ namespace VED.Physics
             bool OneEdge(out float amount)
             {
                 gradient = edges[0].Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideRightConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideRightConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Left < edges[0].Left)
                     return collision.LocalCollider.Left - edges[0].Left <= _slideSettings.MaxSlideRightDist;
@@ -601,7 +601,7 @@ namespace VED.Physics
                 }
 
                 gradient = (collision.LocalCollider.Left < edgeRight.Left) ? edgeLeft.Gradient : edgeRight.Gradient;
-                amount = !gradient.Enabled ? 1f : Mathf.Clamp01(_slideSettings.SlideRightConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value)));
+                amount = !gradient.Enabled ? 1f : _slideSettings.SlideRightConversionCurve[sign].Evaluate(Mathf.Abs(gradient.Value));
 
                 if (collision.LocalCollider.Left < edgeLeft.Left)
                     return collision.LocalCollider.Left - edgeLeft.Left <= _slideSettings.MaxSlideRightDist;
