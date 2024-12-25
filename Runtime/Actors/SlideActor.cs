@@ -210,7 +210,7 @@ namespace VED.Physics
             foreach (PhysicsContact collision in collisions)
             {
                 canSlide &= CanSlideUp(sign, collision, out float newAmount);
-                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
+                amount = Mathf.Min(newAmount, amount);
             }
 
             return canSlide;
@@ -354,7 +354,7 @@ namespace VED.Physics
             foreach (PhysicsContact collision in collisions)
             {
                 canSlide &= CanSlideDown(sign, collision, out float newAmount);
-                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
+                amount = Mathf.Min(newAmount, amount);
             }
 
             return canSlide;
@@ -498,7 +498,7 @@ namespace VED.Physics
             foreach (PhysicsContact collision in collisions)
             {
                 canSlide &= CanSlideLeft(sign, collision, out float newAmount);
-                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
+                amount = Mathf.Min(newAmount, amount);
             }
 
             return canSlide;
@@ -642,7 +642,7 @@ namespace VED.Physics
             foreach (PhysicsContact collision in collisions)
             {
                 canSlide &= CanSlideRight(sign, collision, out float newAmount);
-                amount = Mathf.Min(Mathf.Clamp01(newAmount), amount);
+                amount = Mathf.Min(newAmount, amount);
             }
 
             return canSlide;
