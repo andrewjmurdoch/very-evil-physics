@@ -8,7 +8,7 @@ namespace VED.Physics
     public class SlideActor : PhysicsActor
     {
         [Space(20), Header("SlideActor"), Space(10)]
-        [SerializeField] protected SlideActorSettings _slideSettings = new SlideActorSettings();
+        [SerializeField] protected SlideActorSettings _slideSettings = null;
 
         public bool SlidingUp
         {
