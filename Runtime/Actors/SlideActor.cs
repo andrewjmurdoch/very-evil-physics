@@ -200,20 +200,19 @@ namespace VED.Physics
 
         protected bool CanSlideUp(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = 1;
-            if (!_slideSettings.CanSlideUpMovingLeft && (_velocityHor < 0)) return false;
+            amount = float.MaxValue;
+            if (!_slideSettings.CanSlideUpMovingLeft  && (_velocityHor < 0)) return false;
             if (!_slideSettings.CanSlideUpMovingRight && (_velocityHor > 0)) return false;
             if (!MoveableVertically[1]) return false;
 
-            bool canSlide = true;
-
             foreach (PhysicsContact collision in collisions)
             {
-                canSlide &= CanSlideUp(sign, collision, out float newAmount);
+                if (!CanSlideUp(sign, collision, out float newAmount))
+                    return false;
                 amount = Mathf.Min(newAmount, amount);
             }
 
-            return canSlide;
+            return true;
         }
 
         protected void PerformSlideUp(float amount = 1)
@@ -345,19 +344,19 @@ namespace VED.Physics
 
         protected bool CanSlideDown(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = 1;
+            amount = float.MaxValue;
             if (!_slideSettings.CanSlideDownMovingLeft  && (_velocityHor < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (_velocityHor > 0)) return false;
             if (!MoveableVertically[-1]) return false;
 
-            bool canSlide = true;
             foreach (PhysicsContact collision in collisions)
             {
-                canSlide &= CanSlideDown(sign, collision, out float newAmount);
+                if (!CanSlideDown(sign, collision, out float newAmount))
+                    return false;
                 amount = Mathf.Min(newAmount, amount);
             }
 
-            return canSlide;
+            return true;
         }
 
         protected void PerformSlideDown(float amount = 1)
@@ -489,19 +488,19 @@ namespace VED.Physics
 
         protected bool CanSlideLeft(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = 1;
-            if (!_slideSettings.CanSlideLeftMovingUp && (_velocityVer > 0)) return false;
+            amount = float.MaxValue;
+            if (!_slideSettings.CanSlideLeftMovingUp   && (_velocityVer > 0)) return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (_velocityVer < 0)) return false;
             if (!MoveableHorizontally[-1]) return false;
 
-            bool canSlide = true;
             foreach (PhysicsContact collision in collisions)
             {
-                canSlide &= CanSlideLeft(sign, collision, out float newAmount);
+                if (!CanSlideLeft(sign, collision, out float newAmount))
+                    return false;
                 amount = Mathf.Min(newAmount, amount);
             }
 
-            return canSlide;
+            return true;
         }
 
         protected void PerformSlideLeft(float amount = 1)
@@ -633,19 +632,19 @@ namespace VED.Physics
 
         protected bool CanSlideRight(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = 1;
+            amount = float.MaxValue;
             if (!_slideSettings.CanSlideRightMovingUp   && (_velocityVer > 0)) return false;
             if (!_slideSettings.CanSlideRightMovingDown && (_velocityVer < 0)) return false;
             if (!MoveableHorizontally[1]) return false;
 
-            bool canSlide = true;
             foreach (PhysicsContact collision in collisions)
             {
-                canSlide &= CanSlideRight(sign, collision, out float newAmount);
+                if (!CanSlideRight(sign, collision, out float newAmount))
+                    return false;
                 amount = Mathf.Min(newAmount, amount);
             }
 
-            return canSlide;
+            return true;
         }
 
         protected void PerformSlideRight(float amount = 1)
