@@ -7,6 +7,7 @@ namespace VED.Physics
 {
     public class PhysicsActor : PhysicsObject
     {
+
         public static Action<PhysicsActor> Spawned;
         public static Action<PhysicsActor> Despawned;
 
@@ -17,6 +18,7 @@ namespace VED.Physics
             get => _weight;
             set => _weight = value;
         }
+        [Space(20), Header("PhysicsActor"), Space(10)]
         [SerializeField] protected float _weight = 1f;
 
         public float Strength

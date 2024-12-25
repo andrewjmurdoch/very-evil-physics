@@ -8,6 +8,7 @@ namespace VED.Physics
     // todo: implement ledge grab mechanic
     public class PlayerActor : GravityActor
     {
+        [Space(20), Header("PlayerActor"), Space(10)]
         [SerializeField] protected PlayerActorSettings _settings = null;  
         [SerializeField] protected bool _wallplantEnabled = true;
 

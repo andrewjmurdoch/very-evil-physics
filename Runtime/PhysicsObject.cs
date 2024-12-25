@@ -13,6 +13,8 @@ namespace VED.Physics
             get => _physicsMaterial;
             set => _physicsMaterial = value;
         }
+
+        [Header("PhysicsObject"), Space(10)]
         [SerializeField] protected PhysicsMaterial _physicsMaterial = null;
 
         public Vector2 Velocity => new Vector2(_velocityHor, _velocityVer);

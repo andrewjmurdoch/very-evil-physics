@@ -12,6 +12,7 @@ namespace VED.Physics
             get => _gravity;
             set => _gravity = value;
         }
+        [Space(20), Header("GravityActor"), Space(10)]
         [Range(-1, 1), SerializeField] protected float _gravity = 1f;
 
         public bool Groundable
