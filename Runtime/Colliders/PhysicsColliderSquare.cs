@@ -49,10 +49,10 @@ namespace VED.Physics
         public override bool Colliding(PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!( Left   < other.Right 
-                && Right  > other.Left 
-                && Top    > other.Bottom 
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right 
+                && Right  >= other.Left 
+                && Top    >= other.Bottom 
+                && Bottom <= other.Top)) return false;
 
             if (other is PhysicsColliderSquare square) return true;
 
@@ -68,10 +68,10 @@ namespace VED.Physics
         {
             point = Position;
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             if (other is PhysicsColliderSquare square)
             {
@@ -112,10 +112,10 @@ namespace VED.Physics
                 margin = COLLISION_ERROR_MARGIN_LEFT;
             }
 
-            if (!( edge.Left   < other.Right
-                && edge.Right  > other.Left
-                && edge.Top    > other.Bottom + margin
-                && edge.Bottom < other.Top    - margin)) return false;
+            if (!( edge.Left   <= other.Right
+                && edge.Right  >= other.Left
+                && edge.Top    >= other.Bottom + margin
+                && edge.Bottom <= other.Top    - margin)) return false;
 
             return (other is PhysicsColliderSquare) || edge.Colliding(other);
         }
@@ -133,10 +133,10 @@ namespace VED.Physics
                 margin = COLLISION_ERROR_MARGIN_UP;
             }
 
-            if (!( edge.Left   < other.Right - margin
-                && edge.Right  > other.Left  + margin
-                && edge.Top    > other.Bottom 
-                && edge.Bottom < other.Top)) return false;
+            if (!( edge.Left   <= other.Right - margin
+                && edge.Right  >= other.Left  + margin
+                && edge.Top    >= other.Bottom 
+                && edge.Bottom <= other.Top)) return false;
 
 
             return (other is PhysicsColliderSquare) || edge.Colliding(other);

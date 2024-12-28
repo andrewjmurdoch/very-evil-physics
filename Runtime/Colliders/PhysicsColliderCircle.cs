@@ -29,10 +29,10 @@ namespace VED.Physics
         public override bool Colliding(PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             if (other is PhysicsColliderCircle circle)
             {
@@ -65,10 +65,10 @@ namespace VED.Physics
         {
             point = Position;
             if (other == this) return false;
-            if (!(Left    < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!(Left    <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             if (other is PhysicsColliderCircle circle)
             {
@@ -106,10 +106,10 @@ namespace VED.Physics
         public override bool CollidingHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!(Left    < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!(Left    <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             if (other is PhysicsColliderCircle circle)
             {
@@ -163,10 +163,10 @@ namespace VED.Physics
         public override bool CollidingVertically(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             if (other is PhysicsColliderCircle circle)
             {

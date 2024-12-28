@@ -177,10 +177,10 @@ namespace VED.Physics
         public override bool Colliding(PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             if (Interior(other.Centre)) return true;
             if (AB.Colliding(other)) return true;
@@ -193,10 +193,10 @@ namespace VED.Physics
         {
             point = Position;
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             if (Interior(other.Centre)) return true;
             if (AB.Colliding(other, out point)) return true;
@@ -208,10 +208,10 @@ namespace VED.Physics
         public override bool CollidingHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             List<PhysicsEdge> edges = sign > 0 ? RightEdges : LeftEdges;
             foreach (PhysicsEdge edge in edges)
@@ -224,10 +224,10 @@ namespace VED.Physics
         public override bool CollidingVertically(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!( Left   < other.Right
-                && Right  > other.Left
-                && Top    > other.Bottom
-                && Bottom < other.Top)) return false;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return false;
 
             List<PhysicsEdge> edges = sign > 0 ? TopEdges : BottomEdges;
             foreach (PhysicsEdge edge in edges)
@@ -373,7 +373,7 @@ namespace VED.Physics
                     return (I - P).x;
                 }
 
-                bool localInterior = triangle.Interior(A) || triangle.Interior(B) || triangle.Interior(C);
+                bool localInterior  = triangle.Interior(A) || triangle.Interior(B) || triangle.Interior(C);
                 bool remoteInterior = Interior(triangle.A) || Interior(triangle.B) || Interior(triangle.C);
 
                 if (localInterior)
