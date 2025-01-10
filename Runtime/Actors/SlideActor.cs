@@ -7,6 +7,7 @@ namespace VED.Physics
 {
     public class SlideActor : PhysicsActor
     {
+        public SlideActorSettings SlideActorSettings => _slideSettings;
         [Space(20), Header("SlideActor"), Space(10)]
         [SerializeField] protected SlideActorSettings _slideSettings = null;
 
@@ -157,7 +158,7 @@ namespace VED.Physics
 
         protected bool CanSlideUp(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = float.MaxValue;
+            amount = 0f;
             if (!_slideSettings.CanSlideUpMovingLeft  && (_velocityHor < 0)) return false;
             if (!_slideSettings.CanSlideUpMovingRight && (_velocityHor > 0)) return false;
             if (!MoveableVertically[1]) return false;
@@ -166,7 +167,7 @@ namespace VED.Physics
             {
                 if (!CanSlideUp(sign, collision, out float newAmount))
                     return false;
-                amount = Mathf.Min(newAmount, amount);
+                amount = Mathf.Max(newAmount, amount);
             }
 
             return true;
@@ -180,7 +181,6 @@ namespace VED.Physics
             // if previously moving downward, cancel vertical movement
             _yRounded = Math.Max(_yRounded, 0f);
             _yRemainder = Math.Max(_yRemainder, 0f);
-            _velocityVer = Math.Max(_velocityVer, 0f);
 
             // convert this horizontal movement into vertical movement
             _yRemainder += amount;
@@ -301,7 +301,7 @@ namespace VED.Physics
 
         protected bool CanSlideDown(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = float.MaxValue;
+            amount = 0f;
             if (!_slideSettings.CanSlideDownMovingLeft  && (_velocityHor < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (_velocityHor > 0)) return false;
             if (!MoveableVertically[-1]) return false;
@@ -310,7 +310,7 @@ namespace VED.Physics
             {
                 if (!CanSlideDown(sign, collision, out float newAmount))
                     return false;
-                amount = Mathf.Min(newAmount, amount);
+                amount = Mathf.Max(newAmount, amount);
             }
 
             return true;
@@ -324,7 +324,6 @@ namespace VED.Physics
             // if previously moving upward, cancel vertical movement
             _yRounded = Math.Min(_yRounded, 0f);
             _yRemainder = Math.Min(_yRemainder, 0f);
-            _velocityVer = Math.Min(_velocityVer, 0f);
 
             // convert this horizontal movement into vertical movement
             _yRemainder -= amount;
@@ -445,7 +444,7 @@ namespace VED.Physics
 
         protected bool CanSlideLeft(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = float.MaxValue;
+            amount = 0f;
             if (!_slideSettings.CanSlideLeftMovingUp   && (_velocityVer > 0)) return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (_velocityVer < 0)) return false;
             if (!MoveableHorizontally[-1]) return false;
@@ -454,7 +453,7 @@ namespace VED.Physics
             {
                 if (!CanSlideLeft(sign, collision, out float newAmount))
                     return false;
-                amount = Mathf.Min(newAmount, amount);
+                amount = Mathf.Max(newAmount, amount);
             }
 
             return true;
@@ -468,7 +467,6 @@ namespace VED.Physics
             // if previously moving right, cancel horizontal movement
             _xRounded = Math.Min(_xRounded, 0f);
             _xRemainder = Math.Min(_xRemainder, 0f);
-            _velocityHor = Math.Min(_velocityHor, 0f);
 
             // convert this vertical movement into horizontal movement
             _xRemainder -= amount;
@@ -589,7 +587,7 @@ namespace VED.Physics
 
         protected bool CanSlideRight(float sign, List<PhysicsContact> collisions, out float amount)
         {
-            amount = float.MaxValue;
+            amount = 0f;
             if (!_slideSettings.CanSlideRightMovingUp   && (_velocityVer > 0)) return false;
             if (!_slideSettings.CanSlideRightMovingDown && (_velocityVer < 0)) return false;
             if (!MoveableHorizontally[1]) return false;
@@ -598,7 +596,7 @@ namespace VED.Physics
             {
                 if (!CanSlideRight(sign, collision, out float newAmount))
                     return false;
-                amount = Mathf.Min(newAmount, amount);
+                amount = Mathf.Max(newAmount, amount);
             }
 
             return true;
@@ -612,7 +610,6 @@ namespace VED.Physics
             // if previously moving leftward, cancel horizontal movement
             _xRounded = Math.Max(_xRounded, 0);
             _xRemainder = Math.Max(_xRemainder, 0f);
-            _velocityHor = Math.Max(_velocityHor, 0f);
 
             // convert this vertical movement into horizontal movement
             _xRemainder += amount;
