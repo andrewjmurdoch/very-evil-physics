@@ -50,9 +50,11 @@ namespace VED.Physics
         [SerializeField] private List<PhysicsCollider> _physicsCollidersIgnoredSlideRight = new List<PhysicsCollider>();
 
         #region Up
-        protected bool CanSlideUp(float sign, PhysicsContact collision, out float amount)
+        protected bool CanSlideUp(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideUpMovingLeft  && (sign < 0)) return false;
             if (!_slideSettings.CanSlideUpMovingRight && (sign > 0)) return false;
             if (!MoveableVertically[1]) return false;
@@ -61,23 +63,23 @@ namespace VED.Physics
             // special case for sliding up on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideUpTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                return CanSlideUpTriangle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding up on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
-                return CanSlideUpCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                return CanSlideUpCircle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
+
+            resetVelocity = true;
 
             // typical case for sliding up on square collider
             float slide = collision.RemoteCollider.Top - collision.LocalCollider.Bottom;
-            if (slide >= 0 && slide <= _slideSettings.MaxSlideUpDist)
-            {
-                return amount > MIN_AMOUNT_THRESHOLD;
-            }
-
-            return false;
+            return slide >= 0 
+                && slide <= _slideSettings.MaxSlideUpDist;
         }
 
         protected bool CanSlideUpTriangle(float sign, PhysicsContact collision, out float amount)
@@ -162,24 +164,31 @@ namespace VED.Physics
             return (position.y - circle.Position.y) >= 0;
         }
 
-        protected bool CanSlideUp(float sign, List<PhysicsContact> collisions, out float amount)
+        protected bool CanSlideUp(float sign, List<PhysicsContact> collisions, out float amount, out bool resetVelocity)
         {
             amount = 0f;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideUpMovingLeft  && (_velocityHor < 0)) return false;
             if (!_slideSettings.CanSlideUpMovingRight && (_velocityHor > 0)) return false;
             if (!MoveableVertically[1]) return false;
 
             foreach (PhysicsContact collision in collisions)
             {
-                if (!CanSlideUp(sign, collision, out float newAmount))
+                if (!CanSlideUp(sign, collision, out float newAmount, out bool newResetVelocity))
                     return false;
-                amount = Mathf.Max(newAmount, amount);
+
+                if (newAmount < amount)
+                    continue;
+
+                amount = newAmount;
+                resetVelocity = newResetVelocity;
             }
 
             return true;
         }
 
-        protected void PerformSlideUp(float amount = 1)
+        protected void PerformSlideUp(float amount = 1, bool resetVelocity = false)
         {
             // perform slide up
             _slidingUp = amount > MIN_AMOUNT_THRESHOLD;
@@ -188,15 +197,20 @@ namespace VED.Physics
             _yRounded = Math.Max(_yRounded, 0f);
             _yRemainder = Math.Max(_yRemainder, 0f);
 
+            if (resetVelocity)
+                _velocityVer = Math.Max(_velocityVer, 0f);
+
             // convert this horizontal movement into vertical movement
             _yRemainder += amount;
         }
         #endregion
 
         #region Down
-        protected bool CanSlideDown(float sign, PhysicsContact collision, out float amount)
+        protected bool CanSlideDown(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideDownMovingLeft  && (sign < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (sign > 0)) return false;
             if (!MoveableVertically[-1]) return false;
@@ -205,23 +219,23 @@ namespace VED.Physics
             // special case for sliding under triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideDownTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                return CanSlideDownTriangle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding under circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
-                return CanSlideDownCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                return CanSlideDownCircle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
+
+            resetVelocity = true;
 
             // typical case for sliding down on square collider
             float slide = collision.LocalCollider.Top - collision.RemoteCollider.Bottom;
-            if (slide >= 0 && slide <= _slideSettings.MaxSlideDownDist)
-            {
-                return amount > MIN_AMOUNT_THRESHOLD;
-            }
-
-            return false;
+            return slide >= 0 
+                && slide <= _slideSettings.MaxSlideDownDist;
         }
 
         protected bool CanSlideDownTriangle(float sign, PhysicsContact collision, out float amount)
@@ -306,24 +320,31 @@ namespace VED.Physics
             return (circle.Position.y - position.y) >= 0;
         }
 
-        protected bool CanSlideDown(float sign, List<PhysicsContact> collisions, out float amount)
+        protected bool CanSlideDown(float sign, List<PhysicsContact> collisions, out float amount, out bool resetVelocity)
         {
             amount = 0f;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideDownMovingLeft  && (_velocityHor < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (_velocityHor > 0)) return false;
             if (!MoveableVertically[-1]) return false;
 
             foreach (PhysicsContact collision in collisions)
             {
-                if (!CanSlideDown(sign, collision, out float newAmount))
+                if (!CanSlideDown(sign, collision, out float newAmount, out bool newResetVelocity))
                     return false;
-                amount = Mathf.Max(newAmount, amount);
+
+                if (newAmount < amount)
+                    continue;
+
+                amount = newAmount;
+                resetVelocity = newResetVelocity;
             }
 
             return true;
         }
 
-        protected void PerformSlideDown(float amount = 1)
+        protected void PerformSlideDown(float amount = 1, bool resetVelocity = false)
         {
             // perform slide down
             _slidingDown = amount > MIN_AMOUNT_THRESHOLD;
@@ -332,15 +353,20 @@ namespace VED.Physics
             _yRounded = Math.Min(_yRounded, 0f);
             _yRemainder = Math.Min(_yRemainder, 0f);
 
+            if (resetVelocity)
+                _velocityVer = Math.Min(_velocityVer, 0f);
+
             // convert this horizontal movement into vertical movement
             _yRemainder -= amount;
         }
         #endregion
 
         #region Left
-        protected bool CanSlideLeft(float sign, PhysicsContact collision, out float amount)
+        protected bool CanSlideLeft(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideLeftMovingUp && (sign > 0)) return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (sign < 0)) return false;
             if (!MoveableHorizontally[-1]) return false;
@@ -349,23 +375,23 @@ namespace VED.Physics
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideLeftTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                return CanSlideLeftTriangle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding on circle collider
-            if (collision.RemoteCollider is PhysicsColliderCircle circle)
+            if (collision.RemoteCollider is PhysicsColliderCircle)
             {
-                return CanSlideLeftCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                return CanSlideLeftCircle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
+
+            resetVelocity = true;
 
             // typical case for sliding left on square collider
             float slide = collision.LocalCollider.Right - collision.RemoteCollider.Left;
-            if (slide >= 0 && slide <= _slideSettings.MaxSlideLeftDist)
-            {
-                return amount > MIN_AMOUNT_THRESHOLD;
-            }
-
-            return false;
+            return slide >= 0
+                && slide <= _slideSettings.MaxSlideLeftDist;
         }
 
         protected bool CanSlideLeftTriangle(float sign, PhysicsContact collision, out float amount)
@@ -450,24 +476,31 @@ namespace VED.Physics
             return (circle.Position.x - position.x) >= 0;
         }
 
-        protected bool CanSlideLeft(float sign, List<PhysicsContact> collisions, out float amount)
+        protected bool CanSlideLeft(float sign, List<PhysicsContact> collisions, out float amount, out bool resetVelocity)
         {
             amount = 0f;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideLeftMovingUp   && (_velocityVer > 0)) return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (_velocityVer < 0)) return false;
             if (!MoveableHorizontally[-1]) return false;
 
             foreach (PhysicsContact collision in collisions)
             {
-                if (!CanSlideLeft(sign, collision, out float newAmount))
+                if (!CanSlideLeft(sign, collision, out float newAmount, out bool newResetVelocity))
                     return false;
-                amount = Mathf.Max(newAmount, amount);
+
+                if (newAmount < amount)
+                    continue;
+
+                amount = newAmount;
+                resetVelocity = newResetVelocity;
             }
 
             return true;
         }
 
-        protected void PerformSlideLeft(float amount = 1)
+        protected void PerformSlideLeft(float amount = 1, bool resetVelocity = false)
         {
             // perform slide left
             _slidingLeft = amount > MIN_AMOUNT_THRESHOLD;
@@ -476,15 +509,20 @@ namespace VED.Physics
             _xRounded = Math.Min(_xRounded, 0f);
             _xRemainder = Math.Min(_xRemainder, 0f);
 
+            if (resetVelocity)
+                _velocityHor = Math.Min(_velocityHor, 0f);
+
             // convert this vertical movement into horizontal movement
             _xRemainder -= amount;
         }
         #endregion
 
         #region Right
-        protected bool CanSlideRight(float sign, PhysicsContact collision, out float amount)
+        protected bool CanSlideRight(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideRightMovingUp   && (sign > 0)) return false;
             if (!_slideSettings.CanSlideRightMovingDown && (sign < 0)) return false;
             if (!MoveableHorizontally[1]) return false;
@@ -497,19 +535,17 @@ namespace VED.Physics
             }
 
             // special case for sliding on circle collider
-            if (collision.RemoteCollider is PhysicsColliderCircle circle)
+            if (collision.RemoteCollider is PhysicsColliderCircle)
             {
                 return CanSlideRightCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
             }
 
+            resetVelocity = true;
+
             // typical case for sliding right on square collider
             float slide = collision.RemoteCollider.Right - collision.LocalCollider.Left;
-            if (slide >= 0 && slide <= _slideSettings.MaxSlideRightDist)
-            {
-                return amount > MIN_AMOUNT_THRESHOLD;
-            }
-
-            return false;
+            return slide >= 0
+                && slide <= _slideSettings.MaxSlideRightDist;
         }
 
         protected bool CanSlideRightTriangle(float sign, PhysicsContact collision, out float amount)
@@ -594,24 +630,31 @@ namespace VED.Physics
             return (position.x - circle.Position.x) >= 0;
         }
 
-        protected bool CanSlideRight(float sign, List<PhysicsContact> collisions, out float amount)
+        protected bool CanSlideRight(float sign, List<PhysicsContact> collisions, out float amount, out bool resetVelocity)
         {
             amount = 0f;
+            resetVelocity = false;
+
             if (!_slideSettings.CanSlideRightMovingUp   && (_velocityVer > 0)) return false;
             if (!_slideSettings.CanSlideRightMovingDown && (_velocityVer < 0)) return false;
             if (!MoveableHorizontally[1]) return false;
 
             foreach (PhysicsContact collision in collisions)
             {
-                if (!CanSlideRight(sign, collision, out float newAmount))
+                if (!CanSlideRight(sign, collision, out float newAmount, out bool newResetVelocity))
                     return false;
-                amount = Mathf.Max(newAmount, amount);
+
+                if (newAmount < amount)
+                    continue;
+
+                amount = newAmount;
+                resetVelocity = newResetVelocity;
             }
 
             return true;
         }
 
-        protected void PerformSlideRight(float amount = 1)
+        protected void PerformSlideRight(float amount = 1, bool resetVelocity = false)
         {
             // perform slide right
             _slidingRight = amount > MIN_AMOUNT_THRESHOLD;
@@ -619,6 +662,9 @@ namespace VED.Physics
             // if previously moving leftward, cancel horizontal movement
             _xRounded = Math.Max(_xRounded, 0);
             _xRemainder = Math.Max(_xRemainder, 0f);
+
+            if (resetVelocity)
+                _velocityHor = Math.Max(_velocityHor, 0f);
 
             // convert this vertical movement into horizontal movement
             _xRemainder += amount;
@@ -632,12 +678,13 @@ namespace VED.Physics
             // gravity actors are non-moveable when they are colliding with an object they cannot step upon or duck underneath
 
             float amount = 1;
+            bool resetVelocity = false;
 
             List<PhysicsContact> solids = CollidingHorizontally(sign, _nearbySolids);
             foreach (PhysicsContact contact in solids)
             {
-                if (CanSlideUp  (sign, contact, out amount)) continue;
-                if (CanSlideDown(sign, contact, out amount)) continue;
+                if (CanSlideUp  (sign, contact, out amount, out resetVelocity)) continue;
+                if (CanSlideDown(sign, contact, out amount, out resetVelocity)) continue;
                 return false;
             }
 
@@ -647,8 +694,8 @@ namespace VED.Physics
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
                 if (actor.Immoveable || !actor.MoveableHorizontally[sign])
                 {
-                    if (CanSlideUp  (sign, contact, out amount)) continue;
-                    if (CanSlideDown(sign, contact, out amount)) continue;
+                    if (CanSlideUp  (sign, contact, out amount, out resetVelocity)) continue;
+                    if (CanSlideDown(sign, contact, out amount, out resetVelocity)) continue;
                     return false;
                 }
             }
@@ -663,12 +710,13 @@ namespace VED.Physics
             // gravity actors are non-moveable when they are colliding with an object they cannot slide against
 
             float amount = 1;
+            bool resetVelocity = false;
 
             List<PhysicsContact> solids = CollidingVertically(sign, _nearbySolids);
             foreach (PhysicsContact contact in solids)
             {
-                if (CanSlideLeft (sign, contact, out amount)) continue;
-                if (CanSlideRight(sign, contact, out amount)) continue;
+                if (CanSlideLeft (sign, contact, out amount, out resetVelocity)) continue;
+                if (CanSlideRight(sign, contact, out amount, out resetVelocity)) continue;
                 return false;
             }
 
@@ -678,8 +726,8 @@ namespace VED.Physics
                 PhysicsActor actor = contact.RemoteObject as PhysicsActor;
                 if (actor.Immoveable || !actor.MoveableVertically[sign])
                 {
-                    if (CanSlideLeft (sign, contact, out amount)) continue;
-                    if (CanSlideRight(sign, contact, out amount)) continue;
+                    if (CanSlideLeft (sign, contact, out amount, out resetVelocity)) continue;
+                    if (CanSlideRight(sign, contact, out amount, out resetVelocity)) continue;
                     return false;
                 }
             }
@@ -712,19 +760,20 @@ namespace VED.Physics
             _slidingDown = false;
 
             float amount = 1;
+            bool resetVelocity = false;
 
             List<PhysicsContact> solids = CollidingHorizontally(sign, _nearbySolids);
             if (solids.Count > 0)
             {
-                if (CanSlideUp(sign, solids, out amount))
+                if (CanSlideUp(sign, solids, out amount, out resetVelocity))
                 {
-                    PerformSlideUp(amount);
+                    PerformSlideUp(amount, resetVelocity);
                     return true;
                 }
 
-                if (CanSlideDown(sign, solids, out amount))
+                if (CanSlideDown(sign, solids, out amount, out resetVelocity))
                 {
-                    PerformSlideDown(amount);
+                    PerformSlideDown(amount, resetVelocity);
                     return true;
                 }
 
@@ -735,15 +784,15 @@ namespace VED.Physics
             List<PhysicsContact> actors = CollidingHorizontally(sign, _nearbyActors);
             if (actors.Count > 0)
             {
-                if (CanSlideUp(sign, actors, out amount))
+                if (CanSlideUp(sign, actors, out amount, out resetVelocity))
                 {
-                    PerformSlideUp(amount);
+                    PerformSlideUp(amount,  resetVelocity);
                     return true;
                 }
 
-                if (CanSlideDown(sign, actors, out amount))
+                if (CanSlideDown(sign, actors, out amount, out resetVelocity))
                 {
-                    PerformSlideDown(amount);
+                    PerformSlideDown(amount, resetVelocity);
                     return true;
                 }
 
@@ -766,19 +815,20 @@ namespace VED.Physics
             _slidingRight = false;
 
             float amount = 1;
+            bool resetVelocity = false;
 
             List<PhysicsContact> solids = CollidingVertically(sign, _nearbySolids);
             if (solids.Count > 0)
             {
-                if (CanSlideLeft(sign, solids, out amount))
+                if (CanSlideLeft(sign, solids, out amount, out resetVelocity))
                 {
-                    PerformSlideLeft(amount);
+                    PerformSlideLeft(amount, resetVelocity);
                     return true;
                 }
 
-                if (CanSlideRight(sign, solids, out amount))
+                if (CanSlideRight(sign, solids, out amount, out resetVelocity))
                 {
-                    PerformSlideRight(amount);
+                    PerformSlideRight(amount, resetVelocity);
                     return true;
                 }
 
@@ -789,15 +839,15 @@ namespace VED.Physics
             List<PhysicsContact> actors = CollidingVertically(sign, _nearbyActors);
             if (actors.Count > 0)
             {
-                if (CanSlideLeft(sign, actors, out amount))
+                if (CanSlideLeft(sign, actors, out amount, out resetVelocity))
                 {
-                    PerformSlideLeft(amount);
+                    PerformSlideLeft(amount, resetVelocity);
                     return true;
                 }
 
-                if (CanSlideRight(sign, actors, out amount))
+                if (CanSlideRight(sign, actors, out amount, out resetVelocity))
                 {
-                    PerformSlideRight(amount);
+                    PerformSlideRight(amount, resetVelocity);
                     return true;
                 }
 
