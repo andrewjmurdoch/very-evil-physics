@@ -17,11 +17,20 @@ namespace VED.Physics
             public AnimationCurve this[float sign] => sign > 0 ? Positive : Negative;
         }
 
+        [Serializable]
+        public class ResetVelocity
+        {
+            [SerializeField] public bool Square   = true;
+            [SerializeField] public bool Triangle = true;
+            [SerializeField] public bool Circle   = true;
+        }
+
         #region Up
         [SerializeField] public bool CanSlideUpMovingLeft = true; // whether actor can slide up, when moving left
         [SerializeField] public bool CanSlideUpMovingRight = true; // whether actor can slide up, when moving right
         [SerializeField] public float MaxSlideUpDist = 0.2f;
         [SerializeField] public ConversionCurves SlideUpConversionCurve;
+        [SerializeField] public ResetVelocity SlideUpResetVelocity = new ResetVelocity();
         #endregion
 
         #region Down
@@ -29,6 +38,7 @@ namespace VED.Physics
         [SerializeField] public bool CanSlideDownMovingRight = true; // whether actor can slide down, when moving right
         [SerializeField] public float MaxSlideDownDist = 0.2f;
         [SerializeField] public ConversionCurves SlideDownConversionCurve;
+        [SerializeField] public ResetVelocity SlideDownResetVelocity = new ResetVelocity();
         #endregion
 
         #region Left
@@ -36,6 +46,7 @@ namespace VED.Physics
         [SerializeField] public bool CanSlideLeftMovingDown = true; // whether actor can slide left, when moving down, useful for actors with gravity
         [SerializeField] public float MaxSlideLeftDist = 0.2f;
         [SerializeField] public ConversionCurves SlideLeftConversionCurve;
+        [SerializeField] public ResetVelocity SlideLeftResetVelocity = new ResetVelocity();
         #endregion
 
         #region Right
@@ -43,6 +54,7 @@ namespace VED.Physics
         [SerializeField] public bool CanSlideRightMovingDown = true; // whether actor can slide right, when moving down, useful for actors with gravity
         [SerializeField] public float MaxSlideRightDist = 0.2f;
         [SerializeField] public ConversionCurves SlideRightConversionCurve;
+        [SerializeField] public ResetVelocity SlideRightResetVelocity = new ResetVelocity();
         #endregion
     }
 }

@@ -53,7 +53,7 @@ namespace VED.Physics
         protected bool CanSlideUp(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
-            resetVelocity = false;
+            resetVelocity = _slideSettings.SlideUpResetVelocity.Square;
 
             if (!_slideSettings.CanSlideUpMovingLeft  && (sign < 0)) return false;
             if (!_slideSettings.CanSlideUpMovingRight && (sign > 0)) return false;
@@ -63,6 +63,7 @@ namespace VED.Physics
             // special case for sliding up on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
+                resetVelocity = _slideSettings.SlideUpResetVelocity.Triangle;
                 return CanSlideUpTriangle(sign, collision, out amount)
                     && amount > MIN_AMOUNT_THRESHOLD;
             }
@@ -70,11 +71,12 @@ namespace VED.Physics
             // special case for sliding up on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
+                resetVelocity = _slideSettings.SlideUpResetVelocity.Circle;
                 return CanSlideUpCircle(sign, collision, out amount)
                     && amount > MIN_AMOUNT_THRESHOLD;
             }
 
-            resetVelocity = true;
+            resetVelocity = _slideSettings.SlideUpResetVelocity.Square;
 
             // typical case for sliding up on square collider
             float slide = collision.RemoteCollider.Top - collision.LocalCollider.Bottom;
@@ -209,7 +211,7 @@ namespace VED.Physics
         protected bool CanSlideDown(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
-            resetVelocity = false;
+            resetVelocity = _slideSettings.SlideDownResetVelocity.Square;
 
             if (!_slideSettings.CanSlideDownMovingLeft  && (sign < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (sign > 0)) return false;
@@ -219,6 +221,7 @@ namespace VED.Physics
             // special case for sliding under triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
+                resetVelocity = _slideSettings.SlideDownResetVelocity.Triangle;
                 return CanSlideDownTriangle(sign, collision, out amount)
                     && amount > MIN_AMOUNT_THRESHOLD;
             }
@@ -226,11 +229,12 @@ namespace VED.Physics
             // special case for sliding under circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
+                resetVelocity = _slideSettings.SlideDownResetVelocity.Circle;
                 return CanSlideDownCircle(sign, collision, out amount)
                     && amount > MIN_AMOUNT_THRESHOLD;
             }
 
-            resetVelocity = true;
+            resetVelocity = _slideSettings.SlideDownResetVelocity.Square;
 
             // typical case for sliding down on square collider
             float slide = collision.LocalCollider.Top - collision.RemoteCollider.Bottom;
@@ -365,7 +369,7 @@ namespace VED.Physics
         protected bool CanSlideLeft(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
-            resetVelocity = false;
+            resetVelocity = _slideSettings.SlideLeftResetVelocity.Square;
 
             if (!_slideSettings.CanSlideLeftMovingUp && (sign > 0)) return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (sign < 0)) return false;
@@ -375,6 +379,7 @@ namespace VED.Physics
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
+                resetVelocity = _slideSettings.SlideLeftResetVelocity.Triangle;
                 return CanSlideLeftTriangle(sign, collision, out amount)
                     && amount > MIN_AMOUNT_THRESHOLD;
             }
@@ -382,11 +387,12 @@ namespace VED.Physics
             // special case for sliding on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
+                resetVelocity = _slideSettings.SlideLeftResetVelocity.Circle;
                 return CanSlideLeftCircle(sign, collision, out amount)
                     && amount > MIN_AMOUNT_THRESHOLD;
             }
 
-            resetVelocity = true;
+            resetVelocity = _slideSettings.SlideLeftResetVelocity.Square;
 
             // typical case for sliding left on square collider
             float slide = collision.LocalCollider.Right - collision.RemoteCollider.Left;
@@ -521,7 +527,7 @@ namespace VED.Physics
         protected bool CanSlideRight(float sign, PhysicsContact collision, out float amount, out bool resetVelocity)
         {
             amount = 1;
-            resetVelocity = false;
+            resetVelocity = _slideSettings.SlideRightResetVelocity.Square;
 
             if (!_slideSettings.CanSlideRightMovingUp   && (sign > 0)) return false;
             if (!_slideSettings.CanSlideRightMovingDown && (sign < 0)) return false;
@@ -531,16 +537,20 @@ namespace VED.Physics
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
             {
-                return CanSlideRightTriangle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                resetVelocity = _slideSettings.SlideRightResetVelocity.Triangle;
+                return CanSlideRightTriangle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
 
             // special case for sliding on circle collider
             if (collision.RemoteCollider is PhysicsColliderCircle)
             {
-                return CanSlideRightCircle(sign, collision, out amount) && amount > MIN_AMOUNT_THRESHOLD;
+                resetVelocity = _slideSettings.SlideRightResetVelocity.Circle;
+                return CanSlideRightCircle(sign, collision, out amount)
+                    && amount > MIN_AMOUNT_THRESHOLD;
             }
 
-            resetVelocity = true;
+            resetVelocity = _slideSettings.SlideRightResetVelocity.Square;
 
             // typical case for sliding right on square collider
             float slide = collision.RemoteCollider.Right - collision.LocalCollider.Left;
