@@ -44,6 +44,11 @@ namespace VED.Physics
 
         private const float MIN_AMOUNT_THRESHOLD = 0.1f;
 
+        [SerializeField] private List<PhysicsCollider> _physicsCollidersIgnoredSlideUp    = new List<PhysicsCollider>();
+        [SerializeField] private List<PhysicsCollider> _physicsCollidersIgnoredSlideDown  = new List<PhysicsCollider>();
+        [SerializeField] private List<PhysicsCollider> _physicsCollidersIgnoredSlideLeft  = new List<PhysicsCollider>();
+        [SerializeField] private List<PhysicsCollider> _physicsCollidersIgnoredSlideRight = new List<PhysicsCollider>();
+
         #region Up
         protected bool CanSlideUp(float sign, PhysicsContact collision, out float amount)
         {
@@ -51,6 +56,7 @@ namespace VED.Physics
             if (!_slideSettings.CanSlideUpMovingLeft  && (sign < 0)) return false;
             if (!_slideSettings.CanSlideUpMovingRight && (sign > 0)) return false;
             if (!MoveableVertically[1]) return false;
+            if (_physicsCollidersIgnoredSlideUp.Contains(collision.LocalCollider)) return false;
 
             // special case for sliding up on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
@@ -194,6 +200,7 @@ namespace VED.Physics
             if (!_slideSettings.CanSlideDownMovingLeft  && (sign < 0)) return false;
             if (!_slideSettings.CanSlideDownMovingRight && (sign > 0)) return false;
             if (!MoveableVertically[-1]) return false;
+            if (_physicsCollidersIgnoredSlideDown.Contains(collision.LocalCollider)) return false;
 
             // special case for sliding under triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
@@ -337,6 +344,7 @@ namespace VED.Physics
             if (!_slideSettings.CanSlideLeftMovingUp && (sign > 0)) return false;
             if (!_slideSettings.CanSlideLeftMovingDown && (sign < 0)) return false;
             if (!MoveableHorizontally[-1]) return false;
+            if (_physicsCollidersIgnoredSlideLeft.Contains(collision.LocalCollider)) return false;
 
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
@@ -480,6 +488,7 @@ namespace VED.Physics
             if (!_slideSettings.CanSlideRightMovingUp   && (sign > 0)) return false;
             if (!_slideSettings.CanSlideRightMovingDown && (sign < 0)) return false;
             if (!MoveableHorizontally[1]) return false;
+            if (_physicsCollidersIgnoredSlideRight.Contains(collision.LocalCollider)) return false;
 
             // special case for sliding on triangle collider
             if (collision.RemoteCollider is PhysicsColliderTriangle)
