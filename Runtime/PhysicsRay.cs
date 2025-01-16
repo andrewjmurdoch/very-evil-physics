@@ -25,12 +25,12 @@ namespace VED.Physics
             _focused = focused;
         }
 
-        public bool Cast(out PhysicsObject hit, out Vector2 point)
+        public bool Cast(out PhysicsObject hit, out Vector2 point, bool perfect = true)
         {
-            return Cast(out hit, out point, _origin, _direction, _magnitude, _ignored, _focused);
+            return Cast(out hit, out point, _origin, _direction, _magnitude, _ignored, _focused, true);
         }
 
-        public static bool Cast(out PhysicsObject hit, out Vector2 point, Vector2 origin, Vector2 direction, float magnitude, List<PhysicsObject> ignored = null, List<PhysicsObject> focused = null)
+        public static bool Cast(out PhysicsObject hit, out Vector2 point, Vector2 origin, Vector2 direction, float magnitude, List<PhysicsObject> ignored = null, List<PhysicsObject> focused = null, bool perfect = true)
         {
             hit = null;
             point = origin;
@@ -142,7 +142,7 @@ namespace VED.Physics
 
                         bool EdgeCollision(PhysicsEdge edge, out Vector2 point)
                         {
-                            if (physicsEdge.Colliding(edge, out point))
+                            if (physicsEdge.Colliding(edge, out point, true))
                             {
                                 colliding = true;
                                 float magnitude = (point - origin).magnitude;
@@ -176,7 +176,7 @@ namespace VED.Physics
 
                         bool EdgeCollision(PhysicsEdge edge, out Vector2 point)
                         {
-                            if (physicsEdge.Colliding(edge, out point))
+                            if (physicsEdge.Colliding(edge, out point, true))
                             {
                                 colliding = true;
                                 float magnitude = (point - origin).magnitude;

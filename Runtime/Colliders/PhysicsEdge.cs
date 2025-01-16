@@ -7,16 +7,42 @@ namespace VED.Physics
     {
         public PhysicsEdge(Vector2 A, Vector2 B)
         {
-            this.OA = A;
-            this.OB = B;
-            this.A = OA + (OB - OA).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
-            this.B = OB + (OA - OB).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
+            _OA = A;
+            _OB = B;
+            _A = _OA + (_OB - _OA).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
+            _B = _OB + (_OA - _OB).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
         }
 
-        public Vector2 OA = Vector2.zero;
-        public Vector2 OB = Vector2.zero;
-        public Vector2 A  = Vector2.zero;
-        public Vector2 B  = Vector2.zero;
+        private Vector2 _OA = Vector2.zero;
+        private Vector2 _OB = Vector2.zero;
+        private Vector2 _A = Vector2.zero;
+        private Vector2 _B = Vector2.zero;
+
+        public Vector2 OA
+        {
+            get => _OA;
+            set
+            {
+                _OA = value;
+                _A = _OA + (_OB - _OA).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
+                _B = _OB + (_OA - _OB).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
+            }
+        }
+
+        public Vector2 OB
+        {
+            get => _OB;
+            set
+            {
+                _OB = value;
+                _A = _OA + (_OB - _OA).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
+                _B = _OB + (_OA - _OB).normalized * PhysicsCollider.COLLISION_ERROR_MARGIN;
+            }
+        }
+
+        public Vector2 A => _A;
+
+        public Vector2 B => _B;
 
         public Vector2 Vector => B - A;
         public Vector2 OVector => OB - OA;
@@ -51,37 +77,40 @@ namespace VED.Physics
             return other.OA == OA && other.OB == OB;
         }
 
-        public bool Colliding(PhysicsCollider other)
+        public bool Colliding(PhysicsCollider other, bool perfect = false)
         {
             if (other is PhysicsColliderCircle circle)
             {
                 float projection = Mathf.Clamp(Vector2.Dot(circle.Position - A, Vector.normalized), 0f, Vector.magnitude);
                 Vector2 closest = A + Vector.normalized * projection;
 
+                if (perfect)
+                    return (closest - circle.Position).magnitude <= circle.Radius;
+
                 return (closest - circle.Position).magnitude <= circle.Radius + PhysicsCollider.COLLISION_ERROR_MARGIN;
             }
 
             if (other is PhysicsColliderSquare square)
             {
-                if (Colliding(square.AC)) return true;
-                if (Colliding(square.BD)) return true;
-                if (Colliding(square.AB)) return true;
-                if (Colliding(square.CD)) return true;
+                if (Colliding(square.AC, perfect)) return true;
+                if (Colliding(square.BD, perfect)) return true;
+                if (Colliding(square.AB, perfect)) return true;
+                if (Colliding(square.CD, perfect)) return true;
                 return false;
             }
 
             if (other is PhysicsColliderTriangle triangle)
             {
-                if (Colliding(triangle.AB)) return true;
-                if (Colliding(triangle.BC)) return true;
-                if (Colliding(triangle.CA)) return true;
+                if (Colliding(triangle.AB, perfect)) return true;
+                if (Colliding(triangle.BC, perfect)) return true;
+                if (Colliding(triangle.CA, perfect)) return true;
                 return false;
             }
 
             return false;
         }
 
-        public bool Colliding(PhysicsCollider other, out Vector2 point)
+        public bool Colliding(PhysicsCollider other, out Vector2 point, bool perfect = false)
         {
             point = MidPoint;
 
@@ -91,36 +120,45 @@ namespace VED.Physics
                 Vector2 closest = A + Vector.normalized * projection;
                 point = closest;
 
+                if (perfect)
+                    return (closest - circle.Position).magnitude <= circle.Radius;
+
                 return (closest - circle.Position).magnitude <= circle.Radius + PhysicsCollider.COLLISION_ERROR_MARGIN;
             }
 
             if (other is PhysicsColliderSquare square)
             {
-                if (Colliding(square.AC, out point)) return true;
-                if (Colliding(square.BD, out point)) return true;
-                if (Colliding(square.AB, out point)) return true;
-                if (Colliding(square.CD, out point)) return true;
+                if (Colliding(square.AC, out point, perfect)) return true;
+                if (Colliding(square.BD, out point, perfect)) return true;
+                if (Colliding(square.AB, out point, perfect)) return true;
+                if (Colliding(square.CD, out point, perfect)) return true;
                 return false;
             }
 
             if (other is PhysicsColliderTriangle triangle)
             {
-                if (Colliding(triangle.AB, out point)) return true;
-                if (Colliding(triangle.BC, out point)) return true;
-                if (Colliding(triangle.CA, out point)) return true;
+                if (Colliding(triangle.AB, out point, perfect)) return true;
+                if (Colliding(triangle.BC, out point, perfect)) return true;
+                if (Colliding(triangle.CA, out point, perfect)) return true;
                 return false;
             }
 
             return false;
         }
 
-        public bool Colliding(PhysicsEdge other)
+        public bool Colliding(PhysicsEdge other, bool perfect = false)
         {
-            return Intersection(other, out Vector2 point);
+            Vector2 point = Vector2.zero;
+
+            if (perfect)
+                return IntersectionPerfect(other, out point);
+            return Intersection(other, out point);
         }
 
-        public bool Colliding(PhysicsEdge other, out Vector2 point)
+        public bool Colliding(PhysicsEdge other, out Vector2 point, bool perfect = false)
         {
+            if (perfect)
+                return IntersectionPerfect(other, out point);
             return Intersection(other, out point);
         }
 
@@ -156,6 +194,33 @@ namespace VED.Physics
             if ((S >= 0) && (S <= 1) && (T >= 0) && (T <= 1))
             {
                 intersection = new Vector2(A.x + X1 * S, A.y + Y1 * S);
+                return true;
+            }
+            return false;
+        }
+
+        public bool IntersectionPerfect(PhysicsEdge other, out Vector2 intersection)
+        {
+            intersection = new Vector2(float.NaN, float.NaN);
+
+            float X1 = OB.x - OA.x;
+            float Y1 = OB.y - OA.y;
+            float X2 = other.OB.x - other.OA.x;
+            float Y2 = other.OB.y - other.OA.y;
+
+            float D = (Y1 * X2 - X1 * Y2);
+
+            if (D == 0)
+            {
+                return false;
+            }
+
+            float S = ((OA.x - other.OA.x) * Y2 + (other.OA.y - OA.y) * X2) / D;
+            float T = ((other.OA.x - OA.x) * Y1 + (OA.y - other.OA.y) * X1) / -D;
+
+            if ((S >= 0) && (S <= 1) && (T >= 0) && (T <= 1))
+            {
+                intersection = new Vector2(OA.x + X1 * S, OA.y + Y1 * S);
                 return true;
             }
             return false;
