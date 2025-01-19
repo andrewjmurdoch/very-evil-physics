@@ -106,7 +106,7 @@ namespace VED.Physics
         public override bool CollidingHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return false;
-            if (!(Left    <= other.Right
+            if (!( Left   <= other.Right
                 && Right  >= other.Left
                 && Top    >= other.Bottom
                 && Bottom <= other.Top)) return false;
@@ -220,6 +220,10 @@ namespace VED.Physics
         public override float OverlapHorizontally(float sign, PhysicsCollider other)
         {
             if (other == this) return 0;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return 0;
 
             if (other is PhysicsColliderCircle circle)
             {
@@ -291,6 +295,10 @@ namespace VED.Physics
         public override float OverlapVertically(float sign, PhysicsCollider other)
         {
             if (other == this) return 0;
+            if (!( Left   <= other.Right
+                && Right  >= other.Left
+                && Top    >= other.Bottom
+                && Bottom <= other.Top)) return 0;
 
             if (other is PhysicsColliderCircle circle)
             {
