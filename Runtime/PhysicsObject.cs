@@ -41,7 +41,7 @@ namespace VED.Physics
 
         // physics objects ignored by this physics object
         public List<PhysicsObject> Ignored => _ignored;
-        protected List<PhysicsObject> _ignored = new List<PhysicsObject>();
+        [SerializeField, ReadOnly] protected List<PhysicsObject> _ignored = new List<PhysicsObject>();
         protected Dictionary<PhysicsObject, Timer> _ignoredTimers = new Dictionary<PhysicsObject, Timer>();
 
         // physics objects nearby this physics object - relevant for collision detection
