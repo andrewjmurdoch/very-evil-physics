@@ -46,7 +46,7 @@ namespace VED.Physics
 
         // physics objects nearby this physics object - relevant for collision detection
         public List<PhysicsObject> Nearby => _nearby;
-        protected List<PhysicsObject> _nearby = new List<PhysicsObject>();
+        [SerializeField, ReadOnly] protected List<PhysicsObject> _nearby = new List<PhysicsObject>();
 
         // the margin of error allowed in collision detection
         protected const float COLLISION_ERROR_MARGIN = 0.0035f;
