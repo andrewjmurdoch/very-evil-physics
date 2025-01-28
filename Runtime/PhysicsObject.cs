@@ -130,6 +130,9 @@ namespace VED.Physics
         {
             Timer timer;
 
+            _nearby.Remove(physicsObject);
+
+            // ignore indefinitely
             if (time <= 0f)
             {
                 if (_ignored.Contains(physicsObject) && _ignoredTimers.TryGetValue(physicsObject, out timer))
@@ -143,15 +146,22 @@ namespace VED.Physics
                 return;
             }
 
-            if (_ignored.Contains(physicsObject))
+            if (_ignoredTimers.TryGetValue(physicsObject, out timer))
             {
-                _ignoredTimers[physicsObject].Set(callback: () => { Unignore(physicsObject); }, duration: time);
+                timer.Set(callback: () => 
+                { 
+                    Unignore(physicsObject);
+                },
+                duration: Mathf.Max(timer.Duration - timer.Time, time));
                 return;
             }
 
             _ignored.Add(physicsObject);
             timer = new Timer(time);
-            timer.Set(callback: () => { Unignore(physicsObject); });
+            timer.Set(callback: () => 
+            {
+                Unignore(physicsObject);
+            });
             _ignoredTimers.Add(physicsObject, timer);
         }
 
